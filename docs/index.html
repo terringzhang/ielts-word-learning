@@ -1,323 +1,579 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LexiContext - 视觉场景与美剧语境背词工作台</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
-    /* 高亮生词标签（呼吸灯样式） */
-    .vocab-token {
-      display: inline-block;
-      cursor: pointer;
-      padding: 1px 7px;
-      margin: 1px 2px;
-      border-radius: 6px;
-      font-weight: 700;
-      transition: all 0.2s ease;
-      border-bottom: 2px dashed #6366f1;
-      background: rgba(99, 102, 241, 0.25);
-      color: #c7d2fe;
-    }
-    .vocab-token:hover, .vocab-token.active {
-      background: #6366f1 !important;
-      color: #ffffff !important;
-      transform: translateY(-1px);
-      box-shadow: 0 0 15px rgba(99, 102, 241, 0.7);
-    }
-    .vocab-token.status-mastered {
-      border-bottom: 2px solid #10b981;
-      background: rgba(16, 185, 129, 0.25);
-      color: #6ee7b7;
-    }
-    .vocab-token.status-review {
-      border-bottom: 2px solid #f59e0b;
-      background: rgba(245, 158, 11, 0.3);
-      color: #fcd34d;
-    }
-    /* 中文高斯模糊隐藏 */
-    .spoiler-blur {
-      filter: blur(6px);
-      user-select: none;
-      transition: filter 0.25s ease;
-      cursor: pointer;
-    }
-    .spoiler-blur.revealed, .spoiler-blur:hover {
-      filter: blur(0);
-      user-select: auto;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LexiContext - 视觉场景与美剧语境背词工作台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif;}
+/* 高亮生词标签 */
+.vocab-token {
+display: inline-block;
+cursor: pointer;
+padding: 1px 7px;
+margin: 1px 2px;
+border-radius: 6px;
+font-weight: 700;
+transition: all 0.2s ease;
+border-bottom: 2px dashed #6366f1;
+background: rgba(99, 102, 241, 0.25);
+color: #c7d2fe;
+}
+.vocab-token:hover,.vocab-token.active,.vocab-token:focus-visible {
+background: #6366f1!important;
+color: #ffffff!important;
+transform: translateY(-1px);
+box-shadow: 0 0 15px rgba(99, 102, 241, 0.7);
+outline: none;
+}
+.vocab-token.status-mastered {
+border-bottom: 2px solid #10b981;
+background: rgba(16, 185, 129, 0.25);
+color: #6ee7b7;
+}
+.vocab-token.status-review {
+border-bottom: 2px solid #f59e0b;
+background: rgba(245, 158, 11, 0.3);
+color: #fcd34d;
+}
+/* 中文高斯模糊隐藏：默认隐藏，点击/回车/悬停解锁 */
+.spoiler-blur {
+filter: blur(6px);
+user-select: none;
+transition: filter 0.25s ease;
+cursor: pointer;
+}
+.spoiler-blur.revealed,.spoiler-blur:hover {
+filter: blur(0);
+user-select: auto;
+}
+.spoiler-blur:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; filter: blur(0);}
+.tab-btn.active { background: #4f46e5; color: #fff;}
+</style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- 顶部导航栏 -->
-  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <span class="text-2xl">🎬</span>
-        <div>
-          <h1 class="text-lg font-bold text-white">LexiContext 视觉语境工作台</h1>
-          <p class="text-xs text-slate-400">悬停/点击看卡片 · 中文释义默认隐藏 · 自动同步 Notion</p>
-        </div>
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <button onclick="toggleModal(true)" class="px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg transition flex items-center gap-1.5">
-          <span>➕ 导入今日课程</span>
-        </button>
-        <button onclick="clearAndReset()" class="px-3 py-2 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs transition">
-          🔄 清空缓存重置
-        </button>
-        <button onclick="syncToNotion()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs transition">
-          📓 同步 Notion
-        </button>
-        <button onclick="exportAnkiCSV()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs transition">
-          📥 导出 Anki
-        </button>
-      </div>
-    </div>
-  </header>
+<!-- 顶部导航栏 -->
+<header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-30">
+<div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<span class="text-2xl">🎬</span>
+<div>
+<h1 class="text-lg font-bold text-white">LexiContext 视觉语境工作台</h1>
+<p class="text-xs text-slate-400">点击/悬停看卡片 · 中文释义默认隐藏 · <span id="extStatus" class="text-slate-500">插件未检测到</span></p>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-2">
+<button onclick="toggleModal(true)" class="px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg transition flex items-center gap-1.5">
+<span>➕ 导入今日课程</span>
+</button>
+<button onclick="clearAndReset()" class="px-3 py-2 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs transition">
+🔄 清空缓存重置
+</button>
+<button onclick="syncToNotion()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs transition">
+📓 同步 Notion
+</button>
+<button onclick="exportAnkiCSV()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs transition">
+📥 导出 Anki
+</button>
+</div>
+</div>
+</header>
 
-  <!-- 主体区：左侧文章，右侧固定详情卡 -->
-  <main class="max-w-7xl w-full mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1">
-    <section class="lg:col-span-7 flex flex-col gap-6">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
-        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800 text-xs text-slate-400">
-          <span class="px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-semibold">AI Contextual Reading</span>
-          <div class="flex gap-3">
-            <span>🟣 待学</span><span>🟡 需复习</span><span>🟢 已掌握</span>
-          </div>
-        </div>
-        <h2 id="articleTitle" class="text-2xl font-bold text-white mb-6"></h2>
-        <!-- 文章渲染容器 -->
-        <article id="articleBody" class="text-lg leading-relaxed text-slate-300 space-y-5 font-serif"></article>
-      </div>
+<!-- 主体区：左侧文章，右侧固定详情卡 -->
+<main class="max-w-7xl w-full mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1">
+<section class="lg:col-span-7 flex flex-col gap-6">
+<div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+<div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800 text-xs text-slate-400">
+<span class="px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-semibold">AI Contextual Reading</span>
+<div class="flex gap-3">
+<span>🟣 待学</span><span>🟡 需复习</span><span>🟢 已掌握</span>
+</div>
+</div>
+<h2 id="articleTitle" class="text-2xl font-bold text-white mb-6"></h2>
+<!-- 文章渲染容器 -->
+<article id="articleBody" class="text-lg leading-relaxed text-slate-300 space-y-5 font-serif"></article>
+</div>
 
-      <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
-        <h3 class="text-xs font-semibold uppercase text-slate-400 mb-3">今日词汇表 (<span id="progressSummary">0/0</span>)</h3>
-        <div id="wordPills" class="flex flex-wrap gap-2"></div>
-      </div>
-    </section>
+<div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
+<h3 class="text-xs font-semibold uppercase text-slate-400 mb-3">今日词汇表 (<span id="progressSummary">0/0</span>)</h3>
+<div id="wordPills" class="flex flex-wrap gap-2"></div>
+</div>
+</section>
 
-    <!-- 右侧单词卡片 -->
-    <aside class="lg:col-span-5">
-      <div id="vocabCardContainer" class="sticky top-24 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
-        <div class="p-8 text-center text-slate-500 text-sm">正在加载卡片...</div>
-      </div>
-    </aside>
-  </main>
+<!-- 右侧单词卡片 -->
+<aside class="lg:col-span-5">
+<div id="vocabCardContainer" class="sticky top-24 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+<div class="p-8 text-center text-slate-500 text-sm">正在加载卡片...</div>
+</div>
+</aside>
+</main>
 
-  <!-- 导入 JSON 弹窗 -->
-  <div id="visionModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="text-lg font-bold text-white">📸 粘贴 Gemini 生成的 JSON</h3>
-        <button onclick="toggleModal(false)" class="text-slate-400 hover:text-white text-xl">&times;</button>
-      </div>
+<!-- 导入课程弹窗：拍照识别 / 粘贴 JSON 双模式 -->
+<div id="visionModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+<div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+<div class="flex items-center justify-between border-b border-slate-800 pb-3">
+<h3 class="text-lg font-bold text-white">📸 导入今日课程</h3>
+<button onclick="toggleModal(false)" class="text-slate-400 hover:text-white text-xl">&times;</button>
+</div>
 
-      <div class="space-y-3">
-        <textarea id="pastedJson" rows="9" placeholder="在此粘贴完整的 JSON 代码块..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500"></textarea>
-        <button onclick="loadFromPastedJson()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition">
-          🚀 立即解析并渲染
-        </button>
-      </div>
-    </div>
-  </div>
+<div class="flex gap-2">
+<button id="tabPhoto" onclick="switchImportTab('photo')" class="tab-btn active px-4 py-2 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 transition">📷 拍照识别生成</button>
+<button id="tabPaste" onclick="switchImportTab('paste')" class="tab-btn px-4 py-2 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 transition">📋 粘贴 Gemini JSON</button>
+</div>
 
-  <script>
-    // 默认内置刚才识别的 Clean Energy 课件
-    const DEFAULT_DATA = {
-      article_title: "Pioneering the Next Era of Clean Energy",
-      article_markdown: "In an era where heavy industries relentlessly [[emit|emit]] carbon into the atmosphere, scientists are desperately searching for breakthroughs to cut our global [[carbon footprint|carbon footprint]]. Conventional power plants rely on outdated methods, but [[pioneering|pioneering]] research in energy systems offers a sustainable alternative through [[renewable|renewable]] resources.\n\nInside an experimental geothermal facility, engineers design innovative thermodynamic cycles. Rather than burning coal, warm underground currents [[circulate|circulate]] to heat a specialized fluid. Once reaching the thermal threshold, the system is designed to [[vaporize|vaporize]] this liquid inside a sealed chamber. As pressure mounts, the expanding gas engages a mechanical [[circuit|circuit]], causing an internal turbine to [[rotate|rotate]] at thousands of revolutions per minute. This motion acts as the core [[mechanism|mechanism]] to [[generate|generate]] clean electrical power.\n\nUnderstanding each chemical [[property|property]] of the coolant must be strictly controlled to prevent pipeline corrosion. If a volatile fluid escapes and becomes [[toxic|toxic]] to the surrounding environment, containment protocols are instantly triggered. By harmonizing physics, chemistry, and precision engineering, these facilities demonstrate how human ingenuity can transform ecological challenges into sustainable power.",
-      vocab_list: [
-        { word: "carbon footprint", phonetic: "/ˌkɑː.bən ˈfʊt.prɪnt/", pos: "n.", visual_scene_prompt: "A huge shadow of a human foot formed from smokestack smog stepping down onto a green forest.", scene_emoji: "👣🌍🏭", en_def: "The total amount of greenhouse gases produced to directly and indirectly support human activities.", context_en: "Replacing coal facilities with solar arrays significantly reduces the city's collective carbon footprint.", context_zh: "用太阳能阵列取代燃煤设施显著降低了整个城市的综合碳足迹。", tv_show: "Succession (继承之战)", tv_context_en: "Greg worries aloud about Waystar Royco's public image and their massive carbon footprint while boarding a lavish private jet.", tv_context_zh: "大表哥格雷格登上奢华私人飞机时，嘴上还假模假样地担心公司的碳足迹。", idiom_slang: "go green / eco-friendly", zh_def: "n. 碳足迹" },
-        { word: "emit", phonetic: "/iˈmɪt/", pos: "v.", visual_scene_prompt: "Towering cooling stacks and industrial chimneys spewing dense steam into a twilight sky.", scene_emoji: "🏭💨🌫️", en_def: "To send out light, sound, heat, gas, or radiation.", context_en: "Modern gas turbines are engineered to emit drastically lower amounts of nitrogen oxide.", context_zh: "现代燃气轮机经过优化，排放的氮氧化物大幅降低。", tv_show: "Severance (人生切割术)", tv_context_en: "The luminescent terminal monitors on the severed floor emit a quiet, sterile hum across the eerie office.", tv_context_zh: "在分离楼层里，发光的终端显示器在诡异冷清的办公区发出冰冷微弱的嗡嗡声。", idiom_slang: "belch out / spew forth", zh_def: "v. 排放，散发（气体、光、热等）" },
-        { word: "toxic", phonetic: "/ˈtɒk.sɪk/", pos: "adj.", visual_scene_prompt: "A rusted metal drum leaking glowing neon-green fluid marked with a yellow hazard skull sign.", scene_emoji: "☠️🧪☣️", en_def: "Poisonous; capable of causing injury or death through chemical action.", context_en: "Improper disposal of battery cells can introduce toxic heavy metals directly into groundwater.", context_zh: "废旧电池处理不当会直接将有毒重金属引入地下水。", tv_show: "Breaking Bad (绝命毒师)", tv_context_en: "Walter White orders Jesse to wear full respirators because the synthesis produces deadly toxic fumes.", tv_context_zh: "老白严厉勒令杰西必须全程佩戴防毒面具，因为该过程会释放致命毒气。", idiom_slang: "bad poison / harmful", zh_def: "adj. 有毒的；有害的" },
-        { word: "renewable", phonetic: "/rɪˈnjuː.ə.bəl/", pos: "adj.", visual_scene_prompt: "Sleek white wind turbines spinning rhythmically against a clear blue horizon over emerald hills.", scene_emoji: "☀️🌬️🔋", en_def: "Capable of being replenished or replaced naturally in a short period of time.", context_en: "Integrating renewable power sources into the main grid helps stabilize peak demands.", context_zh: "将可再生能源接入主电网有助于平衡用电高峰需求。", tv_show: "Modern Family (摩登家庭)", tv_context_en: "Alex Dunphy proudly delivers an environmental presentation about renewable energy solutions.", tv_context_zh: "学霸艾里克斯向家人科普可再生能源方案。", idiom_slang: "clean power", zh_def: "adj. 可再生的" },
-        { word: "circulate", phonetic: "/ˈsɜː.kjə.leɪt/", pos: "v.", visual_scene_prompt: "Illuminated transparent glass tubes where colored liquid flows in an endless loop.", scene_emoji: "🔄🌊🔂", en_def: "To move continuously through a closed system or area.", context_en: "Pumps circulate cooling fluids to safeguard the generator from overheating.", context_zh: "循环泵驱动冷却液流动，防止发电机过热。", tv_show: "House of Cards (纸牌屋)", tv_context_en: "Frank Underwood walks briskly through the Capitol corridors to circulate rumors.", tv_context_zh: "弗兰克·安德伍德快步穿梭于国会走廊散布消息试探水温。", idiom_slang: "make the rounds", zh_def: "v. （使）循环；流传" },
-        { word: "vaporize", phonetic: "/ˈveɪ.pə.raɪz/", pos: "v.", visual_scene_prompt: "High-temperature water droplets contacting red-hot copper pipes and instantly bursting into mist.", scene_emoji: "💧♨️💨", en_def: "To turn or be turned from a liquid or solid into a vapor or gas.", context_en: "The thermal chamber is designed to vaporize organic fluid cleanly without mineral residues.", context_zh: "该热能室旨在将有机流体彻底气化且不留残渣。", tv_show: "Breaking Bad (绝命毒师)", tv_context_en: "Walt throws fulminated mercury on the floor, threatening to vaporize the entire room.", tv_context_zh: "老白掷下雷酸汞，威胁让整个房间瞬间化为乌有。", idiom_slang: "go up in smoke", zh_def: "v. （使）蒸发，气化" },
-        { word: "rotate", phonetic: "/rəʊˈteɪt/", pos: "v.", visual_scene_prompt: "A precision turbine blade revolving at immense speed, blurring into a metallic circle.", scene_emoji: "🎡⚙️🌀", en_def: "To turn or cause to turn around a central axis.", context_en: "The steam forces the heavy generator shaft to rotate without vibration.", context_zh: "蒸汽推动重型发电机主轴平稳旋转。", tv_show: "Friends (老友记)", tv_context_en: "Ross frantically yells 'Pivot! Pivot!' as they struggle to rotate a couch around the stairs.", tv_context_zh: "罗斯在楼道里狂喊“转向！”，想让大沙发在拐弯处转过去。", idiom_slang: "spin on a dime", zh_def: "v. （使）旋转" },
-        { word: "mechanism", phonetic: "/ˈmek.ə.nɪ.zəm/", pos: "n.", visual_scene_prompt: "Interlocking brass gears, springs, and levers moving together in intricate harmony.", scene_emoji: "⚙️🕰️🛠️", en_def: "A system of parts working together in a machine; an apparatus.", context_en: "The automated safety mechanism cuts fuel delivery within milliseconds of detecting a leak.", context_zh: "该安全机制在检测到泄漏后数毫秒内切断燃料。", tv_show: "House of Cards (纸牌屋)", tv_context_en: "Frank turns to the camera to describe the intricate mechanism of whip operations.", tv_context_zh: "弗兰克向镜头拆解党鞭幕后权谋机制的运作齿轮。", idiom_slang: "the inner workings", zh_def: "n. 机制；机械装置" },
-        { word: "generate", phonetic: "/ˈdʒen.ə.reɪt/", pos: "v.", visual_scene_prompt: "Crackling blue electricity radiating outward from a high-voltage coil.", scene_emoji: "⚡💡🔋", en_def: "To produce or create energy, results, or power.", context_en: "Coupling geothermal steam with an alternator can generate stable baseload power.", context_zh: "结合地热蒸汽与发电机可以产生稳定的基荷电力。", tv_show: "Succession (继承之战)", tv_context_en: "Logan Roy demands ideas that will generate immediate market excitement and profit.", tv_context_zh: "洛根·罗伊逼问高管什么方案才能立即引爆市场带来利润。", idiom_slang: "spark off / churn out", zh_def: "v. 产生（电、热等）；引起" },
-        { word: "property", phonetic: "/ˈprɒp.ə.ti/", pos: "n.", visual_scene_prompt: "A scientist measuring the boiling point and viscosity of a fluid in a beaker.", scene_emoji: "🔬🧪📑", en_def: "An attribute, quality, or characteristic of something.", context_en: "The thermal property of this synthetic fluid allows it to boil at lower pressure.", context_zh: "这种合成流体的热学性质使其能在更低压力下沸腾。", tv_show: "Breaking Bad (绝命毒师)", tv_context_en: "Walt writes equations, detailing the exact thermodynamic property of crystallization.", tv_context_zh: "老白在黑板上详细讲解晶体结晶过程中特有的热力学性质。", idiom_slang: "core trait", zh_def: "n. 性质，属性，特性" }
-      ]
-    };
+<!-- 拍照识别模式 -->
+<div id="panePhoto" class="space-y-3">
+<p class="text-xs text-slate-400 leading-relaxed">拍下今天要学的内容（课本、讲义、单词表），页面会调用 Gemini Vision 识别图片并生成一篇包含这些生词的语境文章 + 单词卡。API Key 只保存在本机浏览器 localStorage，不会上传到任何服务器。</p>
+<div>
+<label class="text-xs text-slate-400">Gemini API Key（<a class="text-indigo-400 underline" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">去 Google AI Studio 免费获取</a>）</label>
+<input id="geminiKey" type="password" placeholder="AIza..." class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500" />
+</div>
+<div>
+<label class="text-xs text-slate-400">今日学习内容照片</label>
+<input id="photoInput" type="file" accept="image/*" class="mt-1 w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-600 file:text-white file:text-xs file:font-bold hover:file:bg-indigo-500" />
+</div>
+<div id="photoPreviewWrap" class="hidden">
+<img id="photoPreview" class="max-h-48 rounded-xl border border-slate-700" alt="待识别照片预览" />
+</div>
+<button id="genBtn" onclick="generateFromPhoto()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition">
+✨ 识别并生成课程
+</button>
+<p id="genStatus" class="text-xs text-slate-400 text-center"></p>
+</div>
 
-    let sessionData = JSON.parse(localStorage.getItem("lexi_last_session")) || DEFAULT_DATA;
-    let progressMap = JSON.parse(localStorage.getItem("lexi_progress_map") || "{}");
-    let currentWordKey = "";
+<!-- 粘贴 JSON 模式 -->
+<div id="panePaste" class="space-y-3 hidden">
+<p class="text-xs text-slate-400">在 Gemini App 里按下面的 JSON 格式生成课程后，粘贴到这里解析。</p>
+<details class="text-xs text-slate-500 bg-slate-950 border border-slate-800 rounded-xl p-3">
+<summary class="cursor-pointer text-slate-300 font-semibold">查看 JSON 格式模板</summary>
+<pre class="mt-2 overflow-x-auto text-[11px] leading-relaxed">{
+"article_title": "文章标题",
+"article_markdown": "正文，生词用 [[word|文中形式]] 标记，如 [[emit|emit]]",
+"vocab_list": [{
+"word": "emit",
+"phonetic": "/iˈmɪt/",
+"pos": "v.",
+"visual_scene_prompt": "英文场景画面描述",
+"scene_emoji": "🏭💨",
+"en_def": "English definition.",
+"usage": "用法说明：及物动词，常见搭配 emit sth / be emitted from...",
+"context_en": "Real-life example sentence.",
+"context_zh": "现实例句中文翻译。",
+"tv_show": "剧名 (中文名)",
+"tv_context_en": "美剧语境英文台词/场景句。",
+"tv_context_zh": "美剧语境中文翻译。",
+"idiom_slang": "相关习语/俚语",
+"zh_def": "中文核心释义"
+}]
+}</pre>
+</details>
+<textarea id="pastedJson" rows="9" placeholder="在此粘贴完整的 JSON 代码块..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500"></textarea>
+<button onclick="loadFromPastedJson()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition">
+🚀 立即解析并渲染
+</button>
+</div>
+</div>
+</div>
 
-    function initApp() {
-      document.getElementById("articleTitle").textContent = sessionData.article_title || "Vocabulary Session";
-      renderArticle();
-      renderPills();
-      if (sessionData.vocab_list && sessionData.vocab_list.length > 0) {
-        selectWord(sessionData.vocab_list[0].word);
-      }
-    }
+<script>
+// 默认内置 Clean Energy 课件
+const DEFAULT_DATA = {
+article_title: "Pioneering the Next Era of Clean Energy",
+article_markdown: "In an era where heavy industries relentlessly [[emit|emit]] carbon into the atmosphere, scientists are desperately searching for breakthroughs to cut our global [[carbon footprint|carbon footprint]]. Conventional power plants rely on outdated methods, but [[pioneering|pioneering]] research in energy systems offers a sustainable alternative through [[renewable|renewable]] resources.\n\nInside an experimental geothermal facility, engineers design innovative thermodynamic cycles. Rather than burning coal, warm underground currents [[circulate|circulate]] to heat a specialized fluid. Once reaching the thermal threshold, the system is designed to [[vaporize|vaporize]] this liquid inside a sealed chamber. As pressure mounts, the expanding gas engages a mechanical [[circuit|circuit]], causing an internal turbine to [[rotate|rotate]] at thousands of revolutions per minute. This motion acts as the core [[mechanism|mechanism]] to [[generate|generate]] clean electrical power.\n\nUnderstanding each chemical [[property|property]] of the coolant must be strictly controlled to prevent pipeline corrosion. If a volatile fluid escapes and becomes [[toxic|toxic]] to the surrounding environment, containment protocols are instantly triggered. By harmonizing physics, chemistry, and precision engineering, these facilities demonstrate how human ingenuity can transform ecological challenges into sustainable power.",
+vocab_list: [
+{ word: "carbon footprint", phonetic: "/ˌkɑː.bən ˈfʊt.prɪnt/", pos: "n.", visual_scene_prompt: "A huge shadow of a human foot formed from smokestack smog stepping down onto a green forest.", scene_emoji: "👣🌍🏭", en_def: "The total amount of greenhouse gases produced to directly and indirectly support human activities.", usage: "可数名词；常见搭配：reduce / cut / offset one's carbon footprint；carbon footprint of sth。",
+context_en: "Replacing coal facilities with solar arrays significantly reduces the city's collective carbon footprint.", context_zh: "用太阳能阵列取代燃煤设施显著降低了整个城市的综合碳足迹。", tv_show: "Succession (继承之战)", tv_context_en: "Greg worries aloud about Waystar Royco's public image and their massive carbon footprint while boarding a lavish private jet.", tv_context_zh: "大表哥格雷格登上奢华私人飞机时，嘴上还假模假样地担心公司的碳足迹。", idiom_slang: "go green / eco-friendly", zh_def: "n. 碳足迹"},
+{ word: "emit", phonetic: "/iˈmɪt/", pos: "v.", visual_scene_prompt: "Towering cooling stacks and industrial chimneys spewing dense steam into a twilight sky.", scene_emoji: "🏭💨🌫️", en_def: "To send out light, sound, heat, gas, or radiation.", usage: "及物动词；emit sth（排放气体/光/热）；emit a sound（发出声音）。",
+context_en: "Modern gas turbines are engineered to emit drastically lower amounts of nitrogen oxide.", context_zh: "现代燃气轮机经过优化，排放的氮氧化物大幅降低。", tv_show: "Severance (人生切割术)", tv_context_en: "The luminescent terminal monitors on the severed floor emit a quiet, sterile hum across the eerie office.", tv_context_zh: "在分离楼层里，发光的终端显示器在诡异冷清的办公区发出冰冷微弱的嗡嗡声。", idiom_slang: "belch out / spew forth", zh_def: "v. 排放，散发（气体、光、热等）"},
+{ word: "toxic", phonetic: "/ˈtɒk.sɪk/", pos: "adj.", visual_scene_prompt: "A rusted metal drum leaking glowing neon-green fluid marked with a yellow hazard skull sign.", scene_emoji: "☠️🧪☣️", en_def: "Poisonous; capable of causing injury or death through chemical action.", usage: "形容词；toxic to sb/sth（对……有毒）；引申 toxic relationship（有毒的关系）。",
+context_en: "Improper disposal of battery cells can introduce toxic heavy metals directly into groundwater.", context_zh: "废旧电池处理不当会直接将有毒重金属引入地下水。", tv_show: "Breaking Bad (绝命毒师)", tv_context_en: "Walter White orders Jesse to wear full respirators because the synthesis produces deadly toxic fumes.", tv_context_zh: "老白严厉勒令杰西必须全程佩戴防毒面具，因为该过程会释放致命毒气。", idiom_slang: "bad poison / harmful", zh_def: "adj. 有毒的；有害的"},
+{ word: "renewable", phonetic: "/rɪˈnjuː.ə.bəl/", pos: "adj.", visual_scene_prompt: "Sleek white wind turbines spinning rhythmically against a clear blue horizon over emerald hills.", scene_emoji: "☀️🌬️🔋", en_def: "Capable of being replenished or replaced naturally in a short period of time.", usage: "形容词；renewable energy/resources；反义词 non-renewable。",
+context_en: "Integrating renewable power sources into the main grid helps stabilize peak demands.", context_zh: "将可再生能源接入主电网有助于平衡用电高峰需求。", tv_show: "Modern Family (摩登家庭)", tv_context_en: "Alex Dunphy proudly delivers an environmental presentation about renewable energy solutions.", tv_context_zh: "学霸艾里克斯向家人科普可再生能源方案。", idiom_slang: "clean power", zh_def: "adj. 可再生的"},
+{ word: "circulate", phonetic: "/ˈsɜː.kjə.leɪt/", pos: "v.", visual_scene_prompt: "Illuminated transparent glass tubes where colored liquid flows in an endless loop.", scene_emoji: "🔄🌊🔂", en_def: "To move continuously through a closed system or area.", usage: "不及物/及物；circulate through sth（在……中循环）；消息“流传”：rumors circulate。",
+context_en: "Pumps circulate cooling fluids to safeguard the generator from overheating.", context_zh: "循环泵驱动冷却液流动，防止发电机过热。", tv_show: "House of Cards (纸牌屋)", tv_context_en: "Frank Underwood walks briskly through the Capitol corridors to circulate rumors.", tv_context_zh: "弗兰克·安德伍德快步穿梭于国会走廊散布消息试探水温。", idiom_slang: "make the rounds", zh_def: "v. （使）循环；流传"},
+{ word: "vaporize", phonetic: "/ˈveɪ.pə.raɪz/", pos: "v.", visual_scene_prompt: "High-temperature water droplets contacting red-hot copper pipes and instantly bursting into mist.", scene_emoji: "💧♨️💨", en_def: "To turn or be turned from a liquid or solid into a vapor or gas.", usage: "及物/不及物；vaporize sth（使气化）；口语可夸张表示“彻底摧毁”。",
+context_en: "The thermal chamber is designed to vaporize organic fluid cleanly without mineral residues.", context_zh: "该热能室旨在将有机流体彻底气化且不留残渣。", tv_show: "Breaking Bad (绝命毒师)", tv_context_en: "Walt throws fulminated mercury on the floor, threatening to vaporize the entire room.", tv_context_zh: "老白掷下雷酸汞，威胁让整个房间瞬间化为乌有。", idiom_slang: "go up in smoke", zh_def: "v. （使）蒸发，气化"},
+{ word: "rotate", phonetic: "/rəʊˈteɪt/", pos: "v.", visual_scene_prompt: "A precision turbine blade revolving at immense speed, blurring into a metallic circle.", scene_emoji: "🎡⚙️🌀", en_def: "To turn or cause to turn around a central axis.", usage: "及物/不及物；rotate sth（旋转某物）；rotate crops（轮作）；rotate shifts（轮班）。",
+context_en: "The steam forces the heavy generator shaft to rotate without vibration.", context_zh: "蒸汽推动重型发电机主轴平稳旋转。", tv_show: "Friends (老友记)", tv_context_en: "Ross frantically yells 'Pivot! Pivot!' as they struggle to rotate a couch around the stairs.", tv_context_zh: "罗斯在楼道里狂喊“转向！”，想让大沙发在拐弯处转过去。", idiom_slang: "spin on a dime", zh_def: "v. （使）旋转"},
+{ word: "mechanism", phonetic: "/ˈmek.ə.nɪ.zəm/", pos: "n.", visual_scene_prompt: "Interlocking brass gears, springs, and levers moving together in intricate harmony.", scene_emoji: "⚙️🕰️🛠️", en_def: "A system of parts working together in a machine; an apparatus.", usage: "可数名词；the mechanism of/for sth；引申为（运作）机制、手段。",
+context_en: "The automated safety mechanism cuts fuel delivery within milliseconds of detecting a leak.", context_zh: "该安全机制在检测到泄漏后数毫秒内切断燃料。", tv_show: "House of Cards (纸牌屋)", tv_context_en: "Frank turns to the camera to describe the intricate mechanism of whip operations.", tv_context_zh: "弗兰克向镜头拆解党鞭幕后权谋机制的运作齿轮。", idiom_slang: "the inner workings", zh_def: "n. 机制；机械装置"},
+{ word: "generate", phonetic: "/ˈdʒen.ə.reɪt/", pos: "v.", visual_scene_prompt: "Crackling blue electricity radiating outward from a high-voltage coil.", scene_emoji: "⚡💡🔋", en_def: "To produce or create energy, results, or power.", usage: "及物动词；generate electricity/profit/ideas；generate interest in sth（引起兴趣）。",
+context_en: "Coupling geothermal steam with an alternator can generate stable baseload power.", context_zh: "结合地热蒸汽与发电机可以产生稳定的基荷电力。", tv_show: "Succession (继承之战)", tv_context_en: "Logan Roy demands ideas that will generate immediate market excitement and profit.", tv_context_zh: "洛根·罗伊逼问高管什么方案才能立即引爆市场带来利润。", idiom_slang: "spark off / churn out", zh_def: "v. 产生（电、热等）；引起"},
+{ word: "property", phonetic: "/ˈprɒp.ə.ti/", pos: "n.", visual_scene_prompt: "A scientist measuring the boiling point and viscosity of a fluid in a beaker.", scene_emoji: "🔬🧪📑", en_def: "An attribute, quality, or characteristic of something.", usage: "可数名词；the property of sth（……的性质）；properties 复数表“资产/房产”：real property。",
+context_en: "The thermal property of this synthetic fluid allows it to boil at lower pressure.", context_zh: "这种合成流体的热学性质使其能在更低压力下沸腾。", tv_show: "Breaking Bad (绝命毒师)", tv_context_en: "Walt writes equations, detailing the exact thermodynamic property of crystallization.", tv_context_zh: "老白在黑板上详细讲解晶体结晶过程中特有的热力学性质。", idiom_slang: "core trait", zh_def: "n. 性质，属性，特性"}
+]
+};
 
-    // 【超强容错级正则解析器】：彻底吃透各种转义和排版差异
-    function renderArticle() {
-      let rawText = sessionData.article_markdown || "";
+let sessionData = JSON.parse(localStorage.getItem("lexi_last_session")) || DEFAULT_DATA;
+let progressMap = JSON.parse(localStorage.getItem("lexi_progress_map") || "{}");
+let currentWordKey = "";
 
-      // 1. 容错预处理：替换全角括号、多余斜杠
-      rawText = rawText.replace(/【【/g, "[[").replace(/】】/g, "]]");
+function initApp() {
+document.getElementById("articleTitle").textContent = sessionData.article_title || "Vocabulary Session";
+renderArticle();
+renderPills();
+if (sessionData.vocab_list && sessionData.vocab_list.length > 0) {
+selectWord(sessionData.vocab_list[0].word);
+}
+updateExtStatus();
+}
 
-      // 2. 将段落按换行切分
-      const paragraphs = rawText.split(/\r?\n+/);
+// 分词渲染：[[目标词|文中形式]] 或 [[目标词]]；无法解析的标记直接剥离，永不裸露
+function renderArticle() {
+let rawText = sessionData.article_markdown || "";
+rawText = rawText.replace(/【】/g, "]]");
+const paragraphs = rawText.split(/\r?\n+/);
 
-      document.getElementById("articleBody").innerHTML = paragraphs.map(p => {
-        if (!p.trim()) return "";
+document.getElementById("articleBody").innerHTML = paragraphs.map(p => {
+if (!p.trim()) return "";
+let parsed = p.replace(/\[\[\s*([^\]|]+?)\s*(?:\|\s*([^\]]+?)\s*)?\]\]/g, (match, baseWord, surfaceWord) => {
+const display = surfaceWord? surfaceWord.trim(): baseWord.trim();
+return createTokenHtml(baseWord.trim(), display);
+});
+// 兜底：任何残留的 [[...]] 标记一律剥离，只保留词面；连未闭合的括号也清掉
+parsed = parsed.replace(/\[\[([^\]]*?)\]\]/g, (m, inner) => {
+const parts = inner.split("|");
+return escapeHtml((parts[1] || parts[0] || "").trim());
+}).replace(/\[\[|\]\]/g, "");
+return `<p>${parsed}</p>`;
+}).join("");
+}
 
-        // 核心正则：匹配 [[目标词|文中词]] 或 [[目标词]]，支持内部有空格
-        let parsed = p.replace(/\[\[\s*([^\]\vert{}]+?)\s*(?:\Vert{}\s*([^\]]+?)\s*)?\]\]/g, (match, baseWord, surfaceWord) => {
-          const display = surfaceWord ? surfaceWord.trim() : baseWord.trim();
-          return createTokenHtml(baseWord.trim(), display);
-        });
+function escapeHtml(s) {
+return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+}
 
-        return `<p>${parsed}</p>`;
-      }).join("");
-    }
+function createTokenHtml(baseWord, surfaceWord) {
+const key = baseWord.toLowerCase();
+const st = progressMap[key] || "learning";
+const cls = st === "mastered"? "status-mastered": (st === "review"? "status-review": "");
+const safeKey = key.replace(/'/g, "\\'");
+return `<span class="vocab-token ${cls}" data-word="${key}" tabindex="0" role="button" aria-label="查看单词 ${escapeHtml(baseWord)}" onmouseenter="selectWord('${safeKey}')" onclick="selectWord('${safeKey}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectWord('${safeKey}');}">${escapeHtml(surfaceWord)}</span>`;
+}
 
-    function createTokenHtml(baseWord, surfaceWord) {
-      const key = baseWord.toLowerCase();
-      const st = progressMap[key] || "learning";
-      const cls = st === "mastered" ? "status-mastered" : (st === "review" ? "status-review" : "");
-      return `<span class="vocab-token ${cls}" data-word="${key}" onmouseenter="selectWord('${key}')" onclick="selectWord('${key}')">${surfaceWord}</span>`;
-    }
+function renderPills() {
+let mastered = 0;
+const list = sessionData.vocab_list || [];
+document.getElementById("wordPills").innerHTML = list.map(v => {
+const key = v.word.toLowerCase();
+const st = progressMap[key] || "learning";
+if (st === "mastered") mastered++;
+const color = st === "mastered"? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40": (st === "review"? "bg-amber-500/20 text-amber-300 border-amber-500/40": "bg-slate-800 text-slate-300 border-slate-700");
+const safeKey = key.replace(/'/g, "\\'");
+return `<button onclick="selectWord('${safeKey}')" class="px-3 py-1.5 rounded-lg text-xs font-medium border ${color}">${escapeHtml(v.word)}</button>`;
+}).join("");
+document.getElementById("progressSummary").textContent = `${mastered}/${list.length} 已掌握`;
+}
 
-    function renderPills() {
-      let mastered = 0;
-      const list = sessionData.vocab_list || [];
-      document.getElementById("wordPills").innerHTML = list.map(v => {
-        const key = v.word.toLowerCase();
-        const st = progressMap[key] || "learning";
-        if (st === "mastered") mastered++;
-        const color = st === "mastered" ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : (st === "review" ? "bg-amber-500/20 text-amber-300 border-amber-500/40" : "bg-slate-800 text-slate-300 border-slate-700");
-        return `<button onclick="selectWord('${key}')" class="px-3 py-1.5 rounded-lg text-xs font-medium border ${color}">${v.word}</button>`;
-      }).join("");
-      document.getElementById("progressSummary").textContent = `${mastered}/${list.length} 已掌握`;
-    }
+// 在文章中找到该词出现的段落，作为"语境回溯"
+function findContextParagraph(baseWord) {
+const raw = sessionData.article_markdown || "";
+const paragraphs = raw.split(/\r?\n+/);
+const key = baseWord.toLowerCase();
+for (const p of paragraphs) {
+const re = new RegExp("\\[\\[\\s*" + key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+if (re.test(p)) {
+return p.replace(/\[\[\s*([^\]|]+?)\s*(?:\|\s*([^\]]+?)\s*)?\]\]/g, (m, b, s) => {
+const disp = escapeHtml((s || b).trim());
+return b.trim().toLowerCase() === key? `<mark class="bg-indigo-500/40 text-white rounded px-1">${disp}</mark>`: disp;
+}).replace(/\[\[([^\]]*?)\]\]/g, (m, inner) => {
+const parts = inner.split("|");
+return escapeHtml((parts[1] || parts[0] || "").trim());
+});
+}
+}
+return "";
+}
 
-    function selectWord(wordKey) {
-      const key = wordKey.toLowerCase();
-      currentWordKey = key;
-      const item = (sessionData.vocab_list || []).find(v => v.word.toLowerCase() === key);
-      if (!item) return;
+function selectWord(wordKey) {
+const key = wordKey.toLowerCase();
+currentWordKey = key;
+const item = (sessionData.vocab_list || []).find(v => v.word.toLowerCase() === key);
+if (!item) return;
 
-      document.querySelectorAll(".vocab-token").forEach(el => el.classList.toggle("active", el.dataset.word === key));
-      const st = progressMap[key] || "learning";
+document.querySelectorAll(".vocab-token").forEach(el => el.classList.toggle("active", el.dataset.word === key));
+const st = progressMap[key] || "learning";
+const safeKey = key.replace(/'/g, "\\'");
+const say = (t) => `speakText('${String(t || "").replace(/'/g, "\\'")}')`;
+const ctxPara = findContextParagraph(item.word);
 
-      document.getElementById("vocabCardContainer").innerHTML = `
-        <div class="relative h-44 w-full bg-slate-950 overflow-hidden border-b border-slate-800">
-          <img src="https://picsum.photos/seed/${encodeURIComponent(key)}/800/450" alt="${item.word}" class="w-full h-full object-cover opacity-80" />
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
-          <div class="absolute bottom-3 left-4 right-4 flex justify-between items-end">
-            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-black/60 text-indigo-300 border border-white/10">📸 场景：${item.scene_emoji || "✨"}</span>
-            <span class="text-xs text-slate-300 italic max-w-[65%] text-right drop-shadow">"${item.visual_scene_prompt}"</span>
-          </div>
-        </div>
+document.getElementById("vocabCardContainer").innerHTML = `
+<div class="relative h-44 w-full bg-slate-950 overflow-hidden border-b border-slate-800">
+<img src="https://picsum.photos/seed/${encodeURIComponent(key)}/800/450" alt="${escapeHtml(item.word)}" class="w-full h-full object-cover opacity-80" loading="lazy" />
+<div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
+<div class="absolute bottom-3 left-4 right-4 flex justify-between items-end">
+<span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-black/60 text-indigo-300 border border-white/10">📸 场景：${escapeHtml(item.scene_emoji || "✨")}</span>
+<span class="text-xs text-slate-300 italic max-w-[65%] text-right drop-shadow">"${escapeHtml(item.visual_scene_prompt || "")}"</span>
+</div>
+</div>
 
-        <div class="p-6 space-y-4">
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="text-2xl font-extrabold text-white">${item.word} <span class="text-xs font-normal px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">${item.pos}</span></h3>
-              <button onclick="speakText('${item.word.replace(/'/g, "\\'")}')" class="text-xs text-slate-400 hover:text-indigo-400 mt-1">🔊 ${item.phonetic} (朗读)</button>
-            </div>
-            <div class="flex gap-1.5">
-              <button onclick="updateStatus('${key}', 'review')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold border ${st === 'review' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-800 text-slate-300 border-slate-700'}">📌 需复习</button>
-              <button onclick="updateStatus('${key}', 'mastered')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold border ${st === 'mastered' ? 'bg-emerald-500 text-slate-950 border-emerald-400' : 'bg-slate-800 text-slate-300 border-slate-700'}">✅ 已掌握</button>
-            </div>
-          </div>
+<div class="p-6 space-y-4">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-2xl font-extrabold text-white">${escapeHtml(item.word)} <span class="text-xs font-normal px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">${escapeHtml(item.pos || "")}</span></h3>
+<button onclick="${say(item.word)}" class="text-xs text-slate-400 hover:text-indigo-400 mt-1">🔊 ${escapeHtml(item.phonetic || "")} (朗读)</button>
+</div>
+<div class="flex gap-1.5">
+<button onclick="updateStatus('${safeKey}', 'review')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold border ${st === 'review'? 'bg-amber-500 text-slate-950 border-amber-400': 'bg-slate-800 text-slate-300 border-slate-700'}">📌 需复习</button>
+<button onclick="updateStatus('${safeKey}', 'mastered')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold border ${st === 'mastered'? 'bg-emerald-500 text-slate-950 border-emerald-400': 'bg-slate-800 text-slate-300 border-slate-700'}">✅ 已掌握</button>
+</div>
+</div>
 
-          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
-            <div class="text-xs font-bold text-indigo-400 mb-1">ENGLISH DEFINITION</div>
-            <p class="text-sm text-slate-200">${item.en_def}</p>
-          </div>
+${ctxPara? `
+<div class="bg-indigo-950/30 border border-indigo-500/25 rounded-xl p-3.5">
+<div class="text-xs font-bold text-indigo-300 mb-1">📖 语境回溯 · 文章中的句子</div>
+<p class="text-sm text-slate-200 font-serif leading-relaxed">${ctxPara}</p>
+</div>`: ''}
 
-          ${item.tv_show ? `
-          <div class="bg-gradient-to-r from-purple-950/40 to-slate-950 border border-purple-800/40 rounded-xl p-3.5 space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-purple-300">🎬 美剧语境 · <span class="text-amber-300">${item.tv_show}</span></span>
-              <button onclick="speakText('${(item.tv_context_en || "").replace(/'/g, "\\'")}')" class="text-xs text-purple-300/80 hover:text-white">🔊 朗读台词</button>
-            </div>
-            <p class="text-sm text-white font-serif italic">${item.tv_context_en}</p>
-            <p onclick="this.classList.toggle('revealed')" class="text-xs text-slate-400 spoiler-blur pt-1 border-t border-purple-900/40" title="点击显隐中文解析">${item.tv_context_zh}</p>
-          </div>` : ''}
+<div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
+<div class="text-xs font-bold text-indigo-400 mb-1">ENGLISH DEFINITION</div>
+<p class="text-sm text-slate-200">${escapeHtml(item.en_def || "")}</p>
+</div>
 
-          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5 space-y-1.5">
-            <div class="flex justify-between"><span class="text-xs font-bold text-emerald-400">REAL-LIFE SCENARIO</span><button onclick="speakText('${item.context_en.replace(/'/g, "\\'")}')" class="text-xs text-slate-400 hover:text-white">🔊 读例句</button></div>
-            <p class="text-sm text-white">${item.context_en}</p>
-            <p onclick="this.classList.toggle('revealed')" class="text-xs text-slate-400 spoiler-blur pt-1 border-t border-slate-800/60">${item.context_zh}</p>
-          </div>
+${item.usage? `
+<div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
+<div class="text-xs font-bold text-sky-400 mb-1">📌 用法</div>
+<p class="text-sm text-slate-300">${escapeHtml(item.usage)}</p>
+</div>`: ''}
 
-          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
-            <div class="text-xs font-bold text-amber-400 mb-1">USAGE, IDIOMS & SLANG</div>
-            <p class="text-sm text-slate-300">${item.idiom_slang}</p>
-          </div>
+${item.tv_show? `
+<div class="bg-gradient-to-r from-purple-950/40 to-slate-950 border border-purple-800/40 rounded-xl p-3.5 space-y-1.5">
+<div class="flex items-center justify-between">
+<span class="text-xs font-bold text-purple-300">🎬 美剧语境 · <span class="text-amber-300">${escapeHtml(item.tv_show)}</span></span>
+<button onclick="${say(item.tv_context_en)}" class="text-xs text-purple-300/80 hover:text-white">🔊 朗读台词</button>
+</div>
+<p class="text-sm text-white font-serif italic">${escapeHtml(item.tv_context_en || "")}</p>
+<p tabindex="0" role="button" aria-label="点击显示中文翻译" onclick="toggleReveal(this)" onkeydown="revealKey(event, this)" class="text-xs text-slate-400 spoiler-blur pt-1 border-t border-purple-900/40" title="点击显隐中文解析">${escapeHtml(item.tv_context_zh || "")}</p>
+</div>`: ''}
 
-          <div class="bg-indigo-950/20 border border-indigo-500/20 rounded-xl p-3.5 flex justify-between items-center">
-            <div>
-              <div class="text-xs text-indigo-300 mb-1">中文核心释义 (点击或悬停解锁)</div>
-              <div onclick="this.classList.toggle('revealed')" class="text-base font-bold text-white spoiler-blur">${item.zh_def}</div>
-            </div>
-            <span class="text-xs text-slate-500">👁️ 默认隐藏</span>
-          </div>
-        </div>`;
-    }
+<div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5 space-y-1.5">
+<div class="flex justify-between"><span class="text-xs font-bold text-emerald-400">REAL-LIFE SCENARIO · 现实场景句</span><button onclick="${say(item.context_en)}" class="text-xs text-slate-400 hover:text-white">🔊 读例句</button></div>
+<p class="text-sm text-white">${escapeHtml(item.context_en || "")}</p>
+<p tabindex="0" role="button" aria-label="点击显示中文翻译" onclick="toggleReveal(this)" onkeydown="revealKey(event, this)" class="text-xs text-slate-400 spoiler-blur pt-1 border-t border-slate-800/60">${escapeHtml(item.context_zh || "")}</p>
+</div>
 
-    function updateStatus(wordKey, newStatus) {
-      progressMap[wordKey] = (progressMap[wordKey] === newStatus) ? "learning" : newStatus;
-      localStorage.setItem("lexi_progress_map", JSON.stringify(progressMap));
-      renderArticle(); renderPills(); selectWord(wordKey);
+<div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
+<div class="text-xs font-bold text-amber-400 mb-1">USAGE, IDIOMS & SLANG</div>
+<p class="text-sm text-slate-300">${escapeHtml(item.idiom_slang || "")}</p>
+</div>
 
-      const wordObj = sessionData.vocab_list.find(v => v.word.toLowerCase() === wordKey);
-      window.postMessage({ type: "LEXICONTEXT_SYNC_PROGRESS", payload: { word: wordKey, status: progressMap[wordKey], details: wordObj, updatedAt: new Date().toISOString() } }, "*");
-    }
+<div class="bg-indigo-950/20 border border-indigo-500/20 rounded-xl p-3.5 flex justify-between items-center">
+<div>
+<div class="text-xs text-indigo-300 mb-1">中文核心释义（点击或按回车解锁）</div>
+<div tabindex="0" role="button" aria-label="点击显示中文释义" onclick="toggleReveal(this)" onkeydown="revealKey(event, this)" class="text-base font-bold text-white spoiler-blur">${escapeHtml(item.zh_def || "")}</div>
+</div>
+<span class="text-xs text-slate-500">👁️ 默认隐藏</span>
+</div>
+</div>`;
 
-    function speakText(text) {
-      if (!('speechSynthesis' in window)) return;
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text); u.lang = "en-US"; u.rate = 0.95;
-      window.speechSynthesis.speak(u);
-    }
+// 手机端：选中单词后平滑滚动到卡片
+if (window.innerWidth < 1024) {
+document.getElementById("vocabCardContainer").scrollIntoView({ behavior: "smooth", block: "nearest"});
+}
+}
 
-    function toggleModal(show) {
-      const m = document.getElementById("visionModal");
-      m.classList.toggle("hidden", !show); m.classList.toggle("flex", show);
-    }
+function toggleReveal(el) {
+el.classList.toggle("revealed");
+}
+function revealKey(event, el) {
+if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggleReveal(el);}
+}
 
-    function loadFromPastedJson() {
-      try {
-        let raw = document.getElementById("pastedJson").value.trim();
-        raw = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-        sessionData = JSON.parse(raw);
-        localStorage.setItem("lexi_last_session", JSON.stringify(sessionData));
-        initApp(); toggleModal(false);
-      } catch (e) {
-        alert("❌ JSON 解析失败，请确认是否完整复制了代码块！");
-      }
-    }
+function updateStatus(wordKey, newStatus) {
+progressMap[wordKey] = (progressMap[wordKey] === newStatus)? "learning": newStatus;
+localStorage.setItem("lexi_progress_map", JSON.stringify(progressMap));
+renderArticle(); renderPills(); selectWord(wordKey);
 
-    function clearAndReset() {
-      localStorage.removeItem("lexi_last_session");
-      sessionData = DEFAULT_DATA;
-      initApp();
-      alert("✅ 缓存已清空，已重置为最新课件！");
-    }
+const wordObj = (sessionData.vocab_list || []).find(v => v.word.toLowerCase() === wordKey);
+window.postMessage({ type: "LEXICONTEXT_SYNC_PROGRESS", payload: { word: wordKey, status: progressMap[wordKey], details: wordObj, updatedAt: new Date().toISOString()}}, "*");
+}
 
-    function syncToNotion() {
-      window.postMessage({ type: "LEXICONTEXT_SYNC_TO_NOTION", payload: { sessionData: sessionData, progressMap: progressMap } }, "*");
-      alert("🚀 已发送同步指令到浏览器插件！");
-    }
+function speakText(text) {
+if (!("speechSynthesis" in window)) return;
+window.speechSynthesis.cancel();
+const u = new SpeechSynthesisUtterance(text); u.lang = "en-US"; u.rate = 0.95;
+window.speechSynthesis.speak(u);
+}
 
-    function exportAnkiCSV() {
-      const rows = sessionData.vocab_list.map(v => [v.word, v.phonetic, v.pos, v.en_def, v.context_en, v.context_zh, v.idiom_slang, v.zh_def, v.visual_scene_prompt].map(f => `"${String(f||"").replace(/"/g, '""')}"`).join(","));
-      const blob = new Blob(["\uFEFFWord,Phonetic,POS,English Def,Context EN,Context ZH,Idioms,Chinese Def,Visual Scene\n" + rows.join("\n")], { type: "text/csv;charset=utf-8;" });
-      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "lexicontext_anki.csv"; a.click();
-    }
+function toggleModal(show) {
+const m = document.getElementById("visionModal");
+m.classList.toggle("hidden",!show); m.classList.toggle("flex", show);
+if (show) {
+const saved = localStorage.getItem("lexi_gemini_key") || "";
+document.getElementById("geminiKey").value = saved;
+}
+}
 
-    initApp();
-  </script>
+function switchImportTab(which) {
+const isPhoto = which === "photo";
+document.getElementById("panePhoto").classList.toggle("hidden",!isPhoto);
+document.getElementById("panePaste").classList.toggle("hidden", isPhoto);
+document.getElementById("tabPhoto").classList.toggle("active", isPhoto);
+document.getElementById("tabPaste").classList.toggle("active",!isPhoto);
+}
+
+function loadFromPastedJson() {
+try {
+let raw = document.getElementById("pastedJson").value.trim();
+raw = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+sessionData = JSON.parse(raw);
+if (!sessionData.vocab_list ||!sessionData.article_markdown) throw new Error("缺少必要字段");
+localStorage.setItem("lexi_last_session", JSON.stringify(sessionData));
+initApp(); toggleModal(false);
+} catch (e) {
+alert("❌ JSON 解析失败：" + e.message + "\n请对照「查看 JSON 格式模板」检查字段。");
+}
+}
+
+function clearAndReset() {
+if (!confirm("确定要清空当前课程和全部背词进度吗？此操作不可撤销。")) return;
+localStorage.removeItem("lexi_last_session");
+localStorage.removeItem("lexi_progress_map");
+progressMap = {};
+sessionData = DEFAULT_DATA;
+initApp();
+alert("✅ 已清空并重置为默认课件！");
+}
+
+// 插件握手：content script 会在 <html> 上打标 data-lexi-ext="1"
+function extensionPresent() {
+return document.documentElement.dataset.lexiExt === "1";
+}
+function updateExtStatus() {
+const el = document.getElementById("extStatus");
+if (extensionPresent()) {
+el.textContent = "● 插件已连接";
+el.className = "text-emerald-400";
+} else {
+el.textContent = "插件未检测到";
+el.className = "text-slate-500";
+}
+}
+
+function fullSyncPayload() {
+return { sessionData: sessionData, progressMap: progressMap};
+}
+
+function syncToNotion() {
+if (!extensionPresent()) {
+alert("📓 同步需要安装 LexiContext 浏览器插件：\n\n1. 打开 chrome://extensions\n2. 右上角开启「开发者模式」\n3. 「加载已解压的扩展程序」→ 选择本仓库的 extension 文件夹\n4. 点击插件图标，填入 Notion API Key 和 Database ID\n\n装好后刷新本页再点同步。");
+return;
+}
+window.postMessage({ type: "LEXICONTEXT_SYNC_TO_NOTION", payload: fullSyncPayload()}, "*");
+}
+
+// 插件请求全量同步（popup 里的"立即同步"按钮走这里）
+window.addEventListener("message", (event) => {
+if (event.source!== window ||!event.data) return;
+if (event.data.type === "LEXICONTEXT_REQUEST_FULL_SYNC") {
+window.postMessage({ type: "LEXICONTEXT_SYNC_TO_NOTION", payload: fullSyncPayload()}, "*");
+}
+});
+
+function exportAnkiCSV() {
+const header = "Word,Phonetic,POS,English Def,Usage,Context EN,Context ZH,Idioms,Chinese Def,Visual Scene";
+const rows = (sessionData.vocab_list || []).map(v => [v.word, v.phonetic, v.pos, v.en_def, v.usage, v.context_en, v.context_zh, v.idiom_slang, v.zh_def, v.visual_scene_prompt].map(f => `"${String(f || "").replace(/"/g, '""')}"`).join(","));
+const blob = new Blob(["\uFEFF" + header + "\n" + rows.join("\n")], { type: "text/csv;charset=utf-8;"});
+const a = document.createElement("a");
+a.href = URL.createObjectURL(blob);
+a.download = "lexicontext_anki.csv";
+document.body.appendChild(a); a.click(); a.remove();
+setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+// ---------- 拍照 → Gemini Vision 生成课程 ----------
+document.getElementById("photoInput").addEventListener("change", (e) => {
+const file = e.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = () => {
+document.getElementById("photoPreview").src = reader.result;
+document.getElementById("photoPreviewWrap").classList.remove("hidden");
+};
+reader.readAsDataURL(file);
+});
+
+const GEMINI_PROMPT = `你是一位雅思词汇老师。请仔细看这张照片里的学习内容（可能是课本页、讲义或单词表），识别出其中的核心英语生词（8-15 个，优先选对雅思有用的词），然后创作一篇 200-300 词的英文语境短文，把这些生词自然地用进去，并为每个生词制作一张单词卡。
+
+必须严格输出 JSON（不要输出 markdown 代码块之外的任何文字），格式如下：
+{
+"article_title": "英文文章标题",
+"article_markdown": "英文正文，段落用换行分隔。每个生词第一次出现时用 [[word|文中形式]] 标记，例如 [[emit|emit]]；注意 word 是单词原形小写，文中形式是实际出现的拼写",
+"vocab_list": [
+{
+"word": "单词原形（小写）",
+"phonetic": "英式音标，如 /iˈmɪt/",
+"pos": "词性缩写，如 v. / n. / adj.",
+"visual_scene_prompt": "一句英文画面描述，用于联想记忆",
+"scene_emoji": "2-4 个相关 emoji",
+"en_def": "英文释义（一句话）",
+"usage": "中文用法说明：及物/不及物、常见搭配、易混点",
+"context_en": "一个现实场景英文例句（必须包含该词）",
+"context_zh": "上句的中文翻译",
+"tv_show": "一部美剧名（配中文名），选跟例句氛围搭的",
+"tv_context_en": "一句该剧风格的英文场景句（必须包含该词）",
+"tv_context_zh": "上句的中文翻译",
+"idiom_slang": "1-3 个相关习语/俚语/固定搭配",
+"zh_def": "中文核心释义（含词性）"
+}
+]
+}
+要求：article_markdown 里标记的每个词都必须在 vocab_list 里出现；vocab_list 里的每个词都必须在文章里被标记；不要编造照片里没有的生词；例句不要重复文章原句。`;
+
+async function generateFromPhoto() {
+const key = document.getElementById("geminiKey").value.trim();
+const file = document.getElementById("photoInput").files[0];
+const statusEl = document.getElementById("genStatus");
+const btn = document.getElementById("genBtn");
+if (!key) { alert("请先填写 Gemini API Key。"); return;}
+if (!file) { alert("请先选择一张照片。"); return;}
+localStorage.setItem("lexi_gemini_key", key);
+
+btn.disabled = true;
+statusEl.textContent = "⏳ 正在识别照片并生成课程，请稍候…";
+try {
+const dataUrl = await new Promise((res, rej) => {
+const r = new FileReader();
+r.onload = () => res(r.result); r.onerror = rej;
+r.readAsDataURL(file);
+});
+const [mimePart, b64] = dataUrl.split(",");
+const mimeType = (mimePart.match(/data:(.*?);/) || [])[1] || "image/jpeg";
+
+const resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + encodeURIComponent(key), {
+method: "POST",
+headers: { "Content-Type": "application/json"},
+body: JSON.stringify({
+contents: [{ parts: [{ text: GEMINI_PROMPT}, { inline_data: { mime_type: mimeType, data: b64}}]}],
+generationConfig: { response_mime_type: "application/json", temperature: 0.7}
+})
+});
+if (!resp.ok) {
+const errText = await resp.text();
+throw new Error("API 返回 " + resp.status + "：" + errText.slice(0, 200));
+}
+const j = await resp.json();
+const text = (j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts || []).map(p => p.text || "").join("");
+const data = JSON.parse(text);
+if (!data.vocab_list ||!data.article_markdown) throw new Error("返回的 JSON 缺少 vocab_list 或 article_markdown 字段");
+sessionData = data;
+localStorage.setItem("lexi_last_session", JSON.stringify(sessionData));
+initApp(); toggleModal(false);
+alert("✅ 课程生成成功，共 " + data.vocab_list.length + " 个生词！");
+} catch (e) {
+console.error(e);
+statusEl.textContent = "";
+alert("❌ 生成失败：" + e.message);
+} finally {
+btn.disabled = false;
+}
+}
+
+initApp();
+// 插件 content script 稍晚打标，给它 1.5s 后再复查一次状态
+setTimeout(updateExtStatus, 1500);
+</script>
 </body>
 </html>
