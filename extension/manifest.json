@@ -1,15 +1,1 @@
-{
-  "manifest_version": 3,
-  "name": "LexiContext 背词进度同步器",
-  "version": "1.0.0",
-  "description": "自动同步 LexiContext 网页背词进度",
-  "permissions": ["storage", "activeTab"],
-  "action": { "default_popup": "popup.html" },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_idle"
-    }
-  ]
-}
+{"action":{"default_popup":"popup.html"},"background":{"service_worker":"background.js"},"content_scripts":[{"js":["content.js"],"matches":["https://terringzhang.github.io/ielts-word-learning/*","http://ringzhang.me/ielts-word-learning/*","https://ringzhang.me/ielts-word-learning/*"],"run_at":"document_idle"}],"description":"把 LexiContext 网页的背词进度同步到 Notion / Anki","host_permissions":["https://api.notion.com/*","http://127.0.0.1:8765/*"],"manifest_version":3,"name":"LexiContext 背词进度同步器","permissions":["storage","tabs"],"version":"1.1.0"}
