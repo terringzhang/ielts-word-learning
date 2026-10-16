@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "LexiContext 背词进度同步器",
+  "version": "1.0.0",
+  "description": "自动同步 LexiContext 网页背词进度",
+  "permissions": ["storage", "activeTab"],
+  "action": { "default_popup": "popup.html" },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LexiContext - 视觉语境背词工作台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+    .vocab-token {
+      cursor: pointer; padding: 2px 6px; margin: 0 2px; border-radius: 6px; font-weight: 600;
+      transition: all 0.2s; border-bottom: 2px dashed #6366f1; background: rgba(99, 102, 241, 0.15); color: #a5b4fc;
+    }
+    .vocab-token:hover, .vocab-token.active { background: #6366f1; color: #fff; box-shadow: 0 0 12px rgba(99, 102, 241, 0.5); }
+    .vocab-token.status-mastered { border-bottom: 2px solid #10b981; background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+    .vocab-token.status-review { border-bottom: 2px solid #f59e0b; background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+    .spoiler-blur { filter: blur(6px); user-select: none; transition: filter 0.25s; cursor: pointer; }
+    .spoiler-blur.revealed, .spoiler-blur:hover { filter: blur(0); user-select: auto; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- 顶部导航栏 -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">📸</span>
+        <div>
+          <h1 class="text-lg font-bold text-white">LexiContext 视觉语境工作台</h1>
+          <p class="text-xs text-slate-400">悬停/点击单词看卡片 · 点击模糊处显隐中文 · 状态自动同步插件</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button onclick="toggleModal(true)" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg transition">
+          ➕ 拍图生成今日课程 (双模式)
+        </button>
+        <button onclick="exportAnkiCSV()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs transition">
+          📥 导出 Anki (CSV)
+        </button>
+        <button onclick="exportMarkdown()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs transition">
+          📝 导出笔记 (MD)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主体区：左文右卡 -->
+  <main class="max-w-7xl w-full mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1">
+    <section class="lg:col-span-7 flex flex-col gap-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800 text-xs text-slate-400">
+          <span class="px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-semibold">AI Contextual Reading</span>
+          <div class="flex gap-3">
+            <span>🟣 待学</span><span>🟡 需复习</span><span>🟢 已掌握</span>
+          </div>
+        </div>
+        <h2 id="articleTitle" class="text-2xl font-bold text-white mb-6"></h2>
+        <article id="articleBody" class="text-lg leading-relaxed text-slate-300 space-y-5 font-serif"></article>
+      </div>
+
+      <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5">
+        <h3 class="text-xs font-semibold uppercase text-slate-400 mb-3">今日词汇表 (<span id="progressSummary">0/0</span>)</h3>
+        <div id="wordPills" class="flex flex-wrap gap-2"></div>
+      </div>
+    </section>
+
+    <aside class="lg:col-span-5">
+      <div id="vocabCardContainer" class="sticky top-24 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl"></div>
+    </aside>
+  </main>
+
+  <!-- 双模式识图弹窗 -->
+  <div id="visionModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <h3 class="text-lg font-bold text-white">📸 视觉识别生成语境文章</h3>
+        <button onclick="toggleModal(false)" class="text-slate-400 hover:text-white text-xl">&times;</button>
+      </div>
+
+      <!-- 模式切换 Tab -->
+      <div class="grid grid-cols-2 gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <button id="tabMode1" onclick="switchMode(1)" class="py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white transition">
+          方式 1：网页版 Gemini / ChatGPT (免 API)
+        </button>
+        <button id="tabMode2" onclick="switchMode(2)" class="py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition">
+          方式 2：API 极速拍图直连
+        </button>
+      </div>
+
+      <!-- 方式 1 面板：复制 Prompt -> 粘贴 JSON -->
+      <div id="panelMode1" class="space-y-4">
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 space-y-2">
+          <p class="font-semibold text-indigo-400">💡 零成本 3 步使用法：</p>
+          <ol class="list-decimal list-inside space-y-1 text-slate-400">
+            <li>点击下方按钮复制**专属结构化 Prompt**。</li>
+            <li>打开 Gemini 或 ChatGPT 网页/App，**上传你拍的单词书/笔记照片**，粘贴发送。</li>
+            <li>将 AI 回复的 JSON 代码粘贴到下方输入框，点击加载即可！</li>
+          </ol>
+          <button onclick="copyPrompt()" class="mt-2 w-full py-2.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-lg font-bold transition">
+            📋 一键复制专属识图 Prompt
+          </button>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1.5">将 Gemini / ChatGPT 生成的 JSON 粘贴到这里：</label>
+          <textarea id="pastedJson" rows="6" placeholder='{"article_title": "...", "article_markdown": "...", "vocab_list": [...]}' class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500"></textarea>
+        </div>
+        <button onclick="loadFromPastedJson()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition">
+          🚀 解析并生成交互阅读页
+        </button>
+      </div>
+
+      <!-- 方式 2 面板：API 直连识图 -->
+      <div id="panelMode2" class="space-y-4 hidden">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Gemini API Key (仅保存在你本地浏览器 `localStorage` 中)：</label>
+          <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div class="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center hover:border-indigo-500 transition">
+          <input type="file" id="imageInput" accept="image/*" capture="environment" class="text-xs text-slate-300" />
+          <p class="text-xs text-slate-500 mt-2">支持电脑选择图片，或手机端直接调用摄像头拍照</p>
+        </div>
+        <button id="apiSubmitBtn" onclick="generateViaAPI()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition">
+          ⚡ 开始视觉识别并生成课程
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 专属提示词模板（供方式1复制 & 方式2 API共用）
+    const SYSTEM_PROMPT = `你是一位英语母语教学专家。请识别图片中的核心生词或短语（提取6-12个），完成：
+1. 编织一篇连贯地道的英文短文（200-300词）。文中每次出现目标词必须用双括号包裹：[[单词原形|文中实际变形]]，例如 [[procrastinate|procrastinating]]。
+2. 输出严格的 JSON 格式（不要任何多余解释文字），格式如下：
+{
+  "article_title": "英文标题",
+  "article_markdown": "包含 [[word|surface]] 标记的正文段落",
+  "vocab_list": [
+    {
+      "word": "单词原形",
+      "phonetic": "/音标/",
+      "pos": "n./v./adj./idiom",
+      "visual_scene_prompt": "具象的英文视觉场景画面描述，帮助图像记忆",
+      "scene_emoji": "3个代表画面的Emoji",
+      "en_def": "简明纯英释义",
+      "context_en": "地道英文例句",
+      "context_zh": "例句中文翻译",
+      "idiom_slang": "母语者常用习语搭配或俚语替换（附简短英文解释）",
+      "zh_def": "核心中文释义"
+    }
+  ]
+}`;
+
+    // 默认演示数据
+    let sessionData = JSON.parse(localStorage.getItem("lexi_last_session")) || {
+      article_title: "From Burnout to Serendipity",
+      article_markdown: "In a world where digital distractions are [[ubiquitous|ubiquitous]], it is easy to [[procrastinate|procrastinate]] until mental [[burnout|burnout]] hits.\n\nTo stay [[resilient|resilient]], you sometimes have to [[bite the bullet|bite the bullet]] and unplug. That is when true [[serendipity|serendipity]] happens.",
+      vocab_list: [
+        { word: "ubiquitous", phonetic: "/juːˈbɪk.wɪ.təs/", pos: "adj.", visual_scene_prompt: "Glowing Wi-Fi signals and screens on every street corner.", scene_emoji: "📱🌐🏙️", en_def: "Seeming to be everywhere at the same time.", context_en: "Smartphones have become ubiquitous in daily life.", context_zh: "智能手机在日常生活中已无处不在。", idiom_slang: "all over the place / dime a dozen", zh_def: "adj. 无所不在的；十分普遍的" },
+        { word: "procrastinate", phonetic: "/prəˈkræs.tɪ.neɪt/", pos: "v.", visual_scene_prompt: "Watching cat videos while a giant clock ticks behind a pile of books.", scene_emoji: "⏳🐱📚", en_def: "To delay doing something that you should do.", context_en: "Many students procrastinate until the last minute.", context_zh: "许多学生都会拖延到最后一刻。", idiom_slang: "kick the can down the road / put on the back burner", zh_def: "v. 拖延，耽搁" },
+        { word: "burnout", phonetic: "/ˈbɜːn.aʊt/", pos: "n.", visual_scene_prompt: "A human matchstick burned into grey ash in front of a laptop.", scene_emoji: "🕯️💻😮‍💨", en_def: "Extreme tiredness caused by working too hard.", context_en: "Clear boundaries help prevent career burnout.", context_zh: "清晰的界限有助于防止职业倦怠。", idiom_slang: "running on fumes / brain is fried", zh_def: "n. 精疲力竭；职业倦怠" },
+        { word: "resilient", phonetic: "/rɪˈzɪl.i.ənt/", pos: "adj.", visual_scene_prompt: "A green bamboo bending in a storm and springing right back up.", scene_emoji: "🎋🌪️💪", en_def: "Able to quickly recover after setbacks or shocks.", context_en: "A resilient control system maintains stability under disturbance.", context_zh: "具有韧性的控制系统能在干扰下保持稳定。", idiom_slang: "bounce back / roll with the punches", zh_def: "adj. 有韧性的；能迅速恢复的" },
+        { word: "bite the bullet", phonetic: "/baɪt ðə ˈbʊl.ɪt/", pos: "idiom", visual_scene_prompt: "Taking a deep breath and jumping straight into icy water.", scene_emoji: "😬🦷⚡", en_def: "To force yourself to do something difficult that you have been avoiding.", context_en: "I decided to bite the bullet and refactor the code.", context_zh: "我决定硬着头皮重构代码。", idiom_slang: "face the music / swallow the bitter pill", zh_def: "idiom. 硬着头皮上；咬牙面对" },
+        { word: "serendipity", phonetic: "/ˌser.ənˈdɪp.ə.ti/", pos: "n.", visual_scene_prompt: "Stumbling upon a hidden bookstore in a rainy alley by pure chance.", scene_emoji: "🍀✨📖", en_def: "Finding interesting or valuable things by chance.", context_en: "Penicillin was a result of pure serendipity.", context_zh: "青霉素是纯粹机缘巧合的结果。", idiom_slang: "happy accident / stroke of luck", zh_def: "n. 机缘巧合；意外发现珍宝的运道" }
+      ]
+    };
+
+    let progressMap = JSON.parse(localStorage.getItem("lexi_progress_map") || "{}");
+    let currentWordKey = "";
+
+    function initApp() {
+      document.getElementById("articleTitle").textContent = sessionData.article_title;
+      document.getElementById("apiKeyInput").value = localStorage.getItem("lexi_gemini_key") || "";
+      renderArticle();
+      renderPills();
+      if (sessionData.vocab_list.length > 0) selectWord(sessionData.vocab_list[0].word);
+    }
+
+    function renderArticle() {
+      const paragraphs = sessionData.article_markdown.split(/\n\n+/);
+      document.getElementById("articleBody").innerHTML = paragraphs.map(p => {
+        const html = p.replace(/\[\[([^\vert{}\]]+)\Vert{}([^\]]+)\]\]/g, (_, base, surface) => {
+          const key = base.trim().toLowerCase();
+          const st = progressMap[key] || "learning";
+          const cls = st === "mastered" ? "status-mastered" : (st === "review" ? "status-review" : "");
+          return `<span class="vocab-token ${cls}" data-word="${key}" onmouseenter="selectWord('${key}')" onclick="selectWord('${key}')">${surface}</span>`;
+        });
+        return `<p>${html}</p>`;
+      }).join("");
+    }
+
+    function renderPills() {
+      let mastered = 0;
+      document.getElementById("wordPills").innerHTML = sessionData.vocab_list.map(v => {
+        const key = v.word.toLowerCase();
+        const st = progressMap[key] || "learning";
+        if (st === "mastered") mastered++;
+        const color = st === "mastered" ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" : (st === "review" ? "bg-amber-500/20 text-amber-300 border-amber-500/40" : "bg-slate-800 text-slate-300 border-slate-700");
+        return `<button onclick="selectWord('${key}')" class="px-3 py-1.5 rounded-lg text-xs font-medium border ${color}">${v.word}</button>`;
+      }).join("");
+      document.getElementById("progressSummary").textContent = `${mastered}/${sessionData.vocab_list.length} 已掌握`;
+    }
+
+    function selectWord(wordKey) {
+      const key = wordKey.toLowerCase();
+      currentWordKey = key;
+      const item = sessionData.vocab_list.find(v => v.word.toLowerCase() === key);
+      if (!item) return;
+
+      document.querySelectorAll(".vocab-token").forEach(el => el.classList.toggle("active", el.dataset.word === key));
+      const st = progressMap[key] || "learning";
+
+      document.getElementById("vocabCardContainer").innerHTML = `
+        <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 p-6 border-b border-slate-800">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-bold uppercase px-2.5 py-0.5 rounded-full bg-white/10 text-indigo-300">Visual Scene · 场景记忆</span>
+            <span class="text-2xl">${item.scene_emoji || "✨"}</span>
+          </div>
+          <p class="text-sm text-indigo-100 italic">"${item.visual_scene_prompt}"</p>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-2xl font-extrabold text-white">${item.word} <span class="text-xs font-normal px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">${item.pos}</span></h3>
+              <button onclick="speakText('${item.word.replace(/'/g, "\\'")}')" class="text-xs text-slate-400 hover:text-indigo-400 mt-1">🔊 ${item.phonetic} (点击发音)</button>
+            </div>
+            <div class="flex gap-1.5">
+              <button onclick="updateStatus('${key}', 'review')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold border ${st === 'review' ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-800 text-slate-300 border-slate-700'}">📌 需复习</button>
+              <button onclick="updateStatus('${key}', 'mastered')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold border ${st === 'mastered' ? 'bg-emerald-500 text-slate-950 border-emerald-400' : 'bg-slate-800 text-slate-300 border-slate-700'}">✅ 已掌握</button>
+            </div>
+          </div>
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
+            <div class="text-xs font-bold text-indigo-400 mb-1">ENGLISH DEFINITION</div>
+            <p class="text-sm text-slate-200">${item.en_def}</p>
+          </div>
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5 space-y-1.5">
+            <div class="flex justify-between"><span class="text-xs font-bold text-emerald-400">CONTEXT & SCENARIO</span><button onclick="speakText('${item.context_en.replace(/'/g, "\\'")}')" class="text-xs text-slate-400 hover:text-white">🔊 读例句</button></div>
+            <p class="text-sm text-white">${item.context_en}</p>
+            <p onclick="this.classList.toggle('revealed')" class="text-xs text-slate-400 spoiler-blur pt-1 border-t border-slate-800/60">${item.context_zh}</p>
+          </div>
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3.5">
+            <div class="text-xs font-bold text-amber-400 mb-1">USAGE, IDIOMS & SLANG</div>
+            <p class="text-sm text-slate-300">${item.idiom_slang}</p>
+          </div>
+          <div class="bg-indigo-950/20 border border-indigo-500/20 rounded-xl p-3.5 flex justify-between items-center">
+            <div>
+              <div class="text-xs text-indigo-300 mb-1">中文核心释义 (点击或悬停解锁)</div>
+              <div onclick="this.classList.toggle('revealed')" class="text-base font-bold text-white spoiler-blur">${item.zh_def}</div>
+            </div>
+            <span class="text-xs text-slate-500">👁️ 默认隐藏</span>
+          </div>
+        </div>`;
+    }
+
+    function updateStatus(wordKey, newStatus) {
+      progressMap[wordKey] = (progressMap[wordKey] === newStatus) ? "learning" : newStatus;
+      localStorage.setItem("lexi_progress_map", JSON.stringify(progressMap));
+      renderArticle(); renderPills(); selectWord(wordKey);
+      const wordObj = sessionData.vocab_list.find(v => v.word.toLowerCase() === wordKey);
+      window.postMessage({ type: "LEXICONTEXT_SYNC_PROGRESS", payload: { word: wordKey, status: progressMap[wordKey], details: wordObj, updatedAt: new Date().toISOString() } }, "*");
+    }
+
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text); u.lang = "en-US"; u.rate = 0.95;
+      window.speechSynthesis.speak(u);
+    }
+
+    // 弹窗与双模式切换逻辑
+    function toggleModal(show) {
+      const m = document.getElementById("visionModal");
+      m.classList.toggle("hidden", !show); m.classList.toggle("flex", show);
+    }
+    function switchMode(mode) {
+      document.getElementById("panelMode1").classList.toggle("hidden", mode !== 1);
+      document.getElementById("panelMode2").classList.toggle("hidden", mode !== 2);
+      document.getElementById("tabMode1").className = mode === 1 ? "py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white" : "py-2 rounded-lg text-xs font-bold text-slate-400";
+      document.getElementById("tabMode2").className = mode === 2 ? "py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white" : "py-2 rounded-lg text-xs font-bold text-slate-400";
+    }
+    function copyPrompt() {
+      navigator.clipboard.writeText(SYSTEM_PROMPT);
+      alert("✅ 专属 Prompt 已复制！现在去 Gemini 或 ChatGPT 上传照片并粘贴发送吧。");
+    }
+    function loadFromPastedJson() {
+      try {
+        let raw = document.getElementById("pastedJson").value.trim();
+        raw = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+        sessionData = JSON.parse(raw);
+        localStorage.setItem("lexi_last_session", JSON.stringify(sessionData));
+        initApp(); toggleModal(false);
+      } catch (e) { alert("❌ JSON 解析失败，请检查复制的内容是否完整！"); }
+    }
+
+    // 方式 2：前端直接调用 Gemini Vision API
+    async function generateViaAPI() {
+      const key = document.getElementById("apiKeyInput").value.trim();
+      const file = document.getElementById("imageInput").files[0];
+      if (!key || !file) return alert("请填写 API Key 并选择一张图片！");
+      localStorage.setItem("lexi_gemini_key", key);
+
+      const btn = document.getElementById("apiSubmitBtn");
+      btn.textContent = "⏳ 正在识别图片并编织语境短文..."; btn.disabled = true;
+
+      try {
+        const base64Data = await new Promise((res) => {
+          const r = new FileReader();
+          r.onload = () => res(r.result.split(",")[1]);
+          r.readAsDataURL(file);
+        });
+
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: SYSTEM_PROMPT }, { inline_data: { mime_type: file.type, data: base64Data } }] }],
+            generationConfig: { response_mime_type: "application/json" }
+          })
+        });
+        const data = await resp.json();
+        const text = data.candidates[0].content.parts[0].text;
+        sessionData = JSON.parse(text);
+        localStorage.setItem("lexi_last_session", JSON.stringify(sessionData));
+        initApp(); toggleModal(false);
+      } catch (err) {
+        alert("API 调用出错：" + err.message);
+      } finally {
+        btn.textContent = "⚡ 开始视觉识别并生成课程"; btn.disabled = false;
+      }
+    }
+
+    // 导出功能
+    function exportAnkiCSV() {
+      const rows = sessionData.vocab_list.map(v => [v.word, v.phonetic, v.pos, v.en_def, v.context_en, v.context_zh, v.idiom_slang, v.zh_def, v.visual_scene_prompt].map(f => `"${String(f||"").replace(/"/g, '""')}"`).join(","));
+      const blob = new Blob(["\uFEFFWord,Phonetic,POS,English Def,Context EN,Context ZH,Idioms,Chinese Def,Visual Scene\n" + rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "lexicontext_anki.csv"; a.click();
+    }
+    function exportMarkdown() {
+      let md = `# ${sessionData.article_title}\n\n${sessionData.article_markdown}\n\n---\n\n`;
+      sessionData.vocab_list.forEach(v => { md += `### ${v.word} (${v.pos}) \`${v.phonetic}\`\n- **Scene**: ${v.scene_emoji} ${v.visual_scene_prompt}\n- **EN**: ${v.en_def}\n- **Context**: ${v.context_en} (||${v.context_zh}||)\n- **Idioms**: ${v.idiom_slang}\n- **ZH**: ||${v.zh_def}||\n\n`; });
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8;" });
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "lexicontext_notes.md"; a.click();
+    }
+
+    initApp();
+  </script>
+</body>
+</html>

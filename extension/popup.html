@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body { width: 300px; background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; padding: 12px; margin: 0; }
+    .item { background: #1e293b; border: 1px solid #334155; padding: 8px; border-radius: 8px; margin-top: 8px; font-size: 12px; }
+    .tag { float: right; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+    .mastered { background: #065f46; color: #6ee7b7; }
+    .review { background: #78350f; color: #fcd34d; }
+  </style>
+</head>
+<body>
+  <div style="font-weight:bold; font-size:14px; color:#a5b4fc;">📚 LexiContext 同步词库 (<span id="cnt">0</span>)</div>
+  <div id="list"></div>
+  <script>
+    chrome.storage.local.get(["vocabBank"], (res) => {
+      const bank = res.vocabBank || {};
+      const keys = Object.keys(bank);
+      document.getElementById("cnt").textContent = keys.length;
+      document.getElementById("list").innerHTML = keys.map(w => `
+        <div class="item">
+          <strong>${w}</strong> <span class="tag ${bank[w].status}">${bank[w].status}</span>
+          <div style="color:#94a3b8; margin-top:4px;">${bank[w].details?.en_def || ""}</div>
+        </div>
+      `).join("");
+    });
+  </script>
+</body>
+</html>
