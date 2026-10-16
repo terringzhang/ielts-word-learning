@@ -3,28 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <style>
-    body { width: 300px; background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; padding: 12px; margin: 0; }
-    .item { background: #1e293b; border: 1px solid #334155; padding: 8px; border-radius: 8px; margin-top: 8px; font-size: 12px; }
-    .tag { float: right; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
-    .mastered { background: #065f46; color: #6ee7b7; }
-    .review { background: #78350f; color: #fcd34d; }
+    body { width: 320px; background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; padding: 14px; margin: 0; }
+    h2 { font-size: 14px; margin: 0 0 10px 0; color: #a5b4fc; display: flex; justify-content: space-between; }
+    .input-group { margin-bottom: 8px; }
+    label { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 2px; }
+    input { width: 100%; box-sizing: border-box; background: #1e293b; border: 1px solid #334155; color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 12px; }
+    button { width: 100%; padding: 7px; background: #6366f1; border: none; color: #fff; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 4px; }
+    button:hover { background: #4f46e5; }
+    .status { font-size: 11px; text-align: center; margin-top: 6px; color: #10b981; }
   </style>
 </head>
 <body>
-  <div style="font-weight:bold; font-size:14px; color:#a5b4fc;">📚 LexiContext 同步词库 (<span id="cnt">0</span>)</div>
-  <div id="list"></div>
+  <h2><span>📓 Notion 词库同步设置</span></h2>
+  <div class="input-group">
+    <label>Notion API Key (Internal Integration Secret):</label>
+    <input type="password" id="notionKey" placeholder="secret_..." />
+  </div>
+  <div class="input-group">
+    <label>Notion Database ID:</label>
+    <input type="text" id="notionDbId" placeholder="32位的 Database ID" />
+  </div>
+  <button id="saveBtn">💾 保存 Notion 配置</button>
+  <button id="syncNowBtn" style="background:#10b981; margin-top:6px;">⚡ 立即同步所有单词</button>
+  <div id="statusMsg" class="status"></div>
+
   <script>
-    chrome.storage.local.get(["vocabBank"], (res) => {
-      const bank = res.vocabBank || {};
-      const keys = Object.keys(bank);
-      document.getElementById("cnt").textContent = keys.length;
-      document.getElementById("list").innerHTML = keys.map(w => `
-        <div class="item">
-          <strong>${w}</strong> <span class="tag ${bank[w].status}">${bank[w].status}</span>
-          <div style="color:#94a3b8; margin-top:4px;">${bank[w].details?.en_def || ""}</div>
-        </div>
-      `).join("");
+    chrome.storage.local.get(["notionApiKey", "notionDatabaseId"], (res) => {
+      if (res.notionApiKey) document.getElementById("notionKey").value = res.notionApiKey;
+      if (res.notionDatabaseId) document.getElementById("notionDbId").value = res.notionDatabaseId;
     });
+
+    document.getElementById("saveBtn").onclick = () => {
+      const key = document.getElementById("notionKey").value.trim();
+      const dbId = document.getElementById("notionDbId").value.trim();
+      chrome.storage.local.set({ notionApiKey: key, notionDatabaseId: dbId }, () => {
+        document.getElementById("statusMsg").textContent = "✅ 配置已保存！";
+      });
+    };
+
+    document.getElementById("syncNowBtn").onclick = () => {
+      document.getElementById("statusMsg").textContent = "⏳ 正在同步到 Notion...";
+      chrome.runtime.sendMessage({ type: "TRIGGER_NOTION_SYNC" }, (resp) => {
+        document.getElementById("statusMsg").textContent = resp?.msg || "同步完成！";
+      });
+    };
   </script>
 </body>
 </html>
