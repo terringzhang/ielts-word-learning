@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>LexiContext - 视觉场景与美剧语境背词工作台</title>
+<title>LexiContext · 每个单词，都有语境</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif;}
@@ -50,6 +50,80 @@ user-select: auto;
 }
 .spoiler-blur:focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; filter: blur(0);}
 .tab-btn.active { background: #4f46e5; color: #fff;}
+
+/* Reading workspace: warm paper, ink, and teal. */
+:root{color-scheme:light;--paper:#f7f8f4;--ink:#192d2b;--muted:#637670;--line:#dce5df;--accent:#1a6b59}
+body{background:var(--paper);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:rgba(247,248,244,.96)!important;border-color:var(--line)!important}
+header>div{max-width:1280px;padding:20px 28px}
+.brand-mark{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;background:#1a6b59;color:#fff;font:700 30px Georgia}
+.brand-mark span{color:#b6de79}.brand-sub{font-size:12px;font-weight:500;margin-left:7px;color:var(--muted)}
+.study-hero{width:100%;max-width:1280px;margin:0 auto;padding:48px 28px 30px;display:flex;justify-content:space-between;gap:30px;align-items:center}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:2px;color:var(--accent);margin-bottom:12px}
+.study-hero h2{font-size:clamp(26px,3.5vw,42px);font-weight:750;letter-spacing:-1.3px;line-height:1.35}
+.hero-copy{color:var(--muted);font-size:14px;margin-top:12px;line-height:1.8}
+.hero-stats{min-width:215px;padding:18px 24px;border-left:1px solid var(--line)}
+.hero-stats strong{font-size:36px;line-height:1;color:var(--accent)}.hero-stats>span{margin-left:10px;font-size:12px;color:var(--muted)}
+.hero-stats small{font-size:11px;color:var(--muted)}
+.progress-track{height:5px;border-radius:5px;background:#e1e9e2;margin:12px 0 8px;overflow:hidden}
+#masteryBar{height:100%;width:0;background:var(--accent);transition:width .3s}
+.study-toolbar{max-width:1224px;width:calc(100% - 56px);margin:0 auto;display:flex;align-items:center;gap:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0;flex-wrap:wrap}
+.study-toolbar>button{padding:9px 12px;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:8px;background:white}
+.mode-switch{display:flex;background:#e8eee8;border-radius:9px;padding:4px;gap:3px}
+.mode-switch button{padding:8px 14px;font-size:12px;border-radius:6px;color:var(--muted)}
+.mode-switch .selected{background:white;color:var(--accent);box-shadow:0 1px 4px #203e3310;font-weight:700}
+.word-search{display:flex;align-items:center;gap:8px;flex:1;min-width:180px;color:var(--muted);padding:0 8px}
+.word-search input{background:transparent;border:0;outline:0;width:100%;font-size:13px;padding:8px}
+.word-search:focus-within{outline:2px solid var(--accent);border-radius:8px}
+.shortcut-note{max-width:1280px;margin:12px auto 0;padding:0 28px;color:#7b8a83;font-size:11px}
+main{padding-top:24px!important}
+main section>div:first-child{box-shadow:0 8px 30px #203e3304!important}
+.bg-slate-900,.bg-slate-950,.bg-slate-900\/60,.bg-slate-950\/60{background:#fff!important}
+.bg-slate-800{background:#edf2ed!important}
+.border-slate-800,.border-slate-700{border-color:var(--line)!important}
+.text-white{color:var(--ink)!important}
+.text-slate-200,.text-slate-300{color:#354e47!important}
+.text-slate-400,.text-slate-500{color:var(--muted)!important}
+.text-indigo-300,.text-indigo-400,.text-sky-400,.text-emerald-400{color:var(--accent)!important}
+.text-purple-300,.text-purple-300\/80{color:#795c8c!important}
+.text-amber-300,.text-amber-400{color:#92651f!important}
+.bg-indigo-600,.bg-indigo-500,.bg-emerald-500{background:var(--accent)!important;color:white!important}
+.bg-indigo-600 .text-white,.bg-indigo-500 .text-white{color:white!important}
+.bg-indigo-950\/30,.bg-indigo-950\/20,.bg-indigo-500\/10{background:#edf5ee!important}
+.bg-gradient-to-r{background:#f5f1f8!important}
+.bg-indigo-500\/20{background:#e6f1e9!important}
+.bg-rose-600\/20{background:#fbefed!important;color:#9a5145!important}
+#articleTitle{font:600 clamp(25px,3vw,32px)/1.35 Georgia,"Times New Roman",serif;letter-spacing:-.5px;margin:24px 0}
+#articleBody{font-family:Georgia,"Times New Roman",serif;font-size:19px;line-height:2.05;color:#384c45}
+.vocab-token{background:#eaf2e5;color:#316747;border-bottom:1px solid #95b18b;padding:0 4px;margin:0 1px;border-radius:4px;font-weight:500}
+.vocab-token:hover,.vocab-token.active,.vocab-token:focus-visible{background:var(--accent)!important;color:#fff!important;box-shadow:none;transform:none}
+.vocab-token.status-mastered{background:#e4f3e9;color:#216a48;border-color:#7eac8b}
+.vocab-token.status-review{background:#fff1d6;color:#986424;border-color:#d9b46a}
+#vocabCardContainer{box-shadow:0 8px 30px #203e3308!important;top:104px}
+#vocabCardContainer .p-6{padding:24px}
+.scene-panel{padding:24px;background:#eaf0e6;border-bottom:1px solid var(--line);display:flex;gap:15px;align-items:center}
+.scene-panel .scene-icon{font-size:34px;min-width:60px}
+.scene-panel p{font:italic 13px/1.7 Georgia,serif;color:#55705e}
+.scene-panel small{font-size:9px;font-weight:700;letter-spacing:1.5px;color:#66806a;display:block;margin-bottom:5px}
+.pill{font-size:12px;padding:8px 12px;border:1px solid var(--line);border-radius:7px;background:white;color:#486058;transition:.15s}
+.pill[aria-pressed=true]{outline:2px solid var(--accent);outline-offset:2px}
+.pill.mastered{background:#eaf5ed;color:#286d4a}.pill.review{background:#fff5df;color:#986424}
+.empty-words{padding:20px 0;font-size:13px;color:var(--muted)}
+.word-navigation{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:13px 24px;background:#fcfdfb;font-size:12px;color:var(--muted)}
+.word-navigation button{border:1px solid var(--line);padding:7px 12px;border-radius:7px;background:white}
+.word-navigation button:disabled{opacity:.4}
+.spoiler-blur{filter:blur(5px)}.spoiler-blur.revealed{filter:none}
+#visionModal{background:#19352cd9!important}
+#visionModal input,#visionModal textarea,#visionModal details{color:var(--ink)!important;background:#f6f8f4!important}
+.tab-btn.active{background:var(--accent)!important;color:white!important}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+#appNotice{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#193d32;color:white;padding:12px 20px;border-radius:10px;font-size:13px;box-shadow:0 8px 25px #1233;z-index:80;max-width:90%;text-align:center}
+@media(max-width:767px){header>div{padding:14px 18px;gap:12px}header>div>div:last-child{width:100%}header button{flex:1;white-space:nowrap;font-size:10px!important;padding:8px!important}
+.brand-sub{display:none}.study-hero{padding:28px 18px 20px;gap:12px}.hero-copy{font-size:12px}.hero-stats{min-width:105px;padding:8px 0 8px 12px}.hero-stats strong{font-size:27px}.hero-stats>span{display:block;margin:6px 0 0;font-size:10px}.hero-stats small{font-size:10px}
+.study-toolbar{width:calc(100% - 36px);gap:8px;padding:12px 0}.mode-switch{order:0}.word-search{order:2;flex-basis:100%;background:white;border:1px solid var(--line);border-radius:8px}.study-toolbar>button{font-size:11px;padding:8px}.shortcut-note{display:none}
+main{padding:18px!important;gap:18px!important}main section>div:first-child{padding:22px!important}#articleBody{font-size:18px;line-height:1.95}#vocabCardContainer{scroll-margin-top:150px}#vocabCardContainer .p-6{padding:20px}.scene-panel{padding:18px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -58,10 +132,10 @@ user-select: auto;
 <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-30">
 <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center justify-between gap-4">
 <div class="flex items-center gap-3">
-<span class="text-2xl">🎬</span>
+<span class="brand-mark" aria-hidden="true">L<span>·</span></span>
 <div>
-<h1 class="text-lg font-bold text-white">LexiContext 视觉语境工作台</h1>
-<p class="text-xs text-slate-400">点击/悬停看卡片 · 中文释义默认隐藏 · <span id="extStatus" class="text-slate-500">插件未检测到</span></p>
+<h1 class="text-lg font-bold text-white">LexiContext <span class="brand-sub">语境词汇</span></h1>
+<p class="text-xs text-slate-400">阅读 · 理解 · 回忆 · <span id="extStatus" class="text-slate-500">插件未检测到</span></p>
 </div>
 </div>
 <div class="flex flex-wrap items-center gap-2">
@@ -69,7 +143,7 @@ user-select: auto;
 <span>➕ 导入今日课程</span>
 </button>
 <button onclick="clearAndReset()" class="px-3 py-2 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs transition">
-🔄 清空缓存重置
+重置课程与进度
 </button>
 <button onclick="syncToNotion()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs transition">
 📓 同步 Notion
@@ -81,6 +155,17 @@ user-select: auto;
 </div>
 </header>
 
+<section class="study-hero">
+<div><p class="eyebrow">YOUR DAILY LANGUAGE PRACTICE</p><h2>让单词，回到真实语境。</h2><p class="hero-copy">先读一段故事，再理解一个词。今天也向前一点。</p></div>
+<div class="hero-stats" aria-live="polite"><strong id="masteryPercent">0%</strong><span>本课掌握率</span><div class="progress-track"><div id="masteryBar"></div></div><small id="studyCounts">准备开始</small></div>
+</section>
+<nav class="study-toolbar" aria-label="学习工具">
+<div class="mode-switch"><button id="readMode" class="selected" type="button" onclick="setStudyMode('all')">全部词汇</button><button id="reviewMode" type="button" onclick="setStudyMode('review')">待复习 <span id="reviewCount">0</span></button></div>
+<label class="word-search"><span>⌕</span><input id="wordSearch" type="search" placeholder="搜索单词或中文释义" aria-label="搜索单词或中文释义" oninput="renderPills()"></label>
+<button type="button" onclick="downloadBackup()">备份进度 ↗</button><button type="button" onclick="document.getElementById('backupFile').click()">恢复备份</button>
+<input id="backupFile" type="file" accept=".json,application/json" hidden onchange="restoreBackup(this)">
+</nav>
+<p class="shortcut-note">键盘：← → 切换单词 · 空格显示释义 · R 标记复习 · M 标记掌握</p>
 <!-- 主体区：左侧文章，右侧固定详情卡 -->
 <main class="max-w-7xl w-full mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1">
 <section class="lg:col-span-7 flex flex-col gap-6">
@@ -111,11 +196,11 @@ user-select: auto;
 </main>
 
 <!-- 导入课程弹窗：拍照识别 / 粘贴 JSON 双模式 -->
-<div id="visionModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+<div id="visionModal" role="dialog" aria-modal="true" aria-label="导入今日课程" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
 <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
 <h3 class="text-lg font-bold text-white">📸 导入今日课程</h3>
-<button onclick="toggleModal(false)" class="text-slate-400 hover:text-white text-xl">&times;</button>
+<button aria-label="关闭导入窗口" onclick="toggleModal(false)" class="text-slate-400 hover:text-white text-xl">&times;</button>
 </div>
 
 <div class="flex gap-2">
@@ -125,7 +210,7 @@ user-select: auto;
 
 <!-- 拍照识别模式 -->
 <div id="panePhoto" class="space-y-3">
-<p class="text-xs text-slate-400 leading-relaxed">拍下今天要学的内容（课本、讲义、单词表），页面会调用 Gemini Vision 识别图片并生成一篇包含这些生词的语境文章 + 单词卡。API Key 只保存在本机浏览器 localStorage，不会上传到任何服务器。</p>
+<p class="text-xs text-slate-400 leading-relaxed">拍下今天要学的内容（课本、讲义、单词表），页面会调用 Gemini Vision 识别图片并生成一篇包含这些生词的语境文章 + 单词卡。API Key 保存在本机浏览器。生成时，照片和提示词会发送至 Google Gemini，API Key 用于向 Google 验证请求。请勿上传含个人敏感信息的图片。</p>
 <div>
 <label class="text-xs text-slate-400">Gemini API Key（<a class="text-indigo-400 underline" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">去 Google AI Studio 免费获取</a>）</label>
 <input id="geminiKey" type="password" placeholder="AIza..." class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-indigo-500" />
@@ -206,8 +291,43 @@ context_en: "The thermal property of this synthetic fluid allows it to boil at l
 ]
 };
 
-let sessionData = JSON.parse(localStorage.getItem("lexi_last_session")) || DEFAULT_DATA;
-let progressMap = JSON.parse(localStorage.getItem("lexi_progress_map") || "{}");
+
+function safeRead(key, fallback) {
+ try { const value=JSON.parse(localStorage.getItem(key)); return value === null ? fallback : value; }
+ catch (_) { return fallback; }
+}
+function validateLesson(data) {
+ if (!data || typeof data !== "object" || typeof data.article_markdown !== "string" || !data.article_markdown.trim() ||
+     !Array.isArray(data.vocab_list) || !data.vocab_list.length || data.vocab_list.length>500 ||
+     data.article_markdown.length>200000) throw new Error("课程需要正文和 1–500 个单词");
+ const fields=["word","phonetic","pos","visual_scene_prompt","scene_emoji","en_def","usage","context_en","context_zh","tv_show","tv_context_en","tv_context_zh","idiom_slang","zh_def"];
+ const seen=new Set();
+ const list=data.vocab_list.map(v=>{
+   if (!v || typeof v.word!=="string" || !v.word.trim()) throw new Error("每张单词卡都需要有效的 word");
+   const item={};
+   fields.forEach(f=>{if(v[f]!=null && typeof v[f]!=="string") throw new Error(f+" 必须是文本"); item[f]=v[f]||"";});
+   item.word=item.word.trim();
+   const key=item.word.toLowerCase();
+   if (seen.has(key)) throw new Error("存在重复单词："+item.word);
+   if (item.word.length>120 || fields.some(f=>item[f].length>12000)) throw new Error("单词卡内容过长");
+   seen.add(key); return item;
+ });
+ return {article_title:typeof data.article_title==="string"?data.article_title.slice(0,300):"Vocabulary Session",article_markdown:data.article_markdown,vocab_list:list};
+}
+function restoreLesson() {
+ try { return validateLesson(safeRead("lexi_last_session",DEFAULT_DATA)); } catch (_) { return DEFAULT_DATA; }
+}
+function restoreProgress() {
+ const raw=safeRead("lexi_progress_map",{});
+ const result=Object.create(null);
+ if(raw && typeof raw==="object" && !Array.isArray(raw)) Object.entries(raw).forEach(([k,v])=>{
+   if(["learning","review","mastered"].includes(v)) result[k]=v;
+ });
+ return result;
+}
+
+let sessionData = restoreLesson();
+let progressMap = restoreProgress();
 let currentWordKey = "";
 
 function initApp() {
@@ -228,7 +348,7 @@ const paragraphs = rawText.split(/\r?\n+/);
 
 document.getElementById("articleBody").innerHTML = paragraphs.map(p => {
 if (!p.trim()) return "";
-let parsed = p.replace(/\[\[\s*([^\]|]+?)\s*(?:\|\s*([^\]]+?)\s*)?\]\]/g, (match, baseWord, surfaceWord) => {
+let parsed = escapeHtml(p).replace(/\[\[\s*([^\]|]+?)\s*(?:\|\s*([^\]]+?)\s*)?\]\]/g, (match, baseWord, surfaceWord) => {
 const display = surfaceWord? surfaceWord.trim(): baseWord.trim();
 return createTokenHtml(baseWord.trim(), display);
 });
@@ -249,7 +369,7 @@ function createTokenHtml(baseWord, surfaceWord) {
 const key = baseWord.toLowerCase();
 const st = progressMap[key] || "learning";
 const cls = st === "mastered"? "status-mastered": (st === "review"? "status-review": "");
-const safeKey = key.replace(/'/g, "\\'");
+const safeKey = escapeHtml(key.replace(/\\/g, "\\\\").replace(/'/g, "\\'"));
 return `<span class="vocab-token ${cls}" data-word="${key}" tabindex="0" role="button" aria-label="查看单词 ${escapeHtml(baseWord)}" onmouseenter="selectWord('${safeKey}')" onclick="selectWord('${safeKey}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectWord('${safeKey}');}">${escapeHtml(surfaceWord)}</span>`;
 }
 
@@ -261,7 +381,7 @@ const key = v.word.toLowerCase();
 const st = progressMap[key] || "learning";
 if (st === "mastered") mastered++;
 const color = st === "mastered"? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40": (st === "review"? "bg-amber-500/20 text-amber-300 border-amber-500/40": "bg-slate-800 text-slate-300 border-slate-700");
-const safeKey = key.replace(/'/g, "\\'");
+const safeKey = escapeHtml(key.replace(/\\/g, "\\\\").replace(/'/g, "\\'"));
 return `<button onclick="selectWord('${safeKey}')" class="px-3 py-1.5 rounded-lg text-xs font-medium border ${color}">${escapeHtml(v.word)}</button>`;
 }).join("");
 document.getElementById("progressSummary").textContent = `${mastered}/${list.length} 已掌握`;
@@ -275,7 +395,7 @@ const key = baseWord.toLowerCase();
 for (const p of paragraphs) {
 const re = new RegExp("\\[\\[\\s*" + key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
 if (re.test(p)) {
-return p.replace(/\[\[\s*([^\]|]+?)\s*(?:\|\s*([^\]]+?)\s*)?\]\]/g, (m, b, s) => {
+return escapeHtml(p).replace(/\[\[\s*([^\]|]+?)\s*(?:\|\s*([^\]]+?)\s*)?\]\]/g, (m, b, s) => {
 const disp = escapeHtml((s || b).trim());
 return b.trim().toLowerCase() === key? `<mark class="bg-indigo-500/40 text-white rounded px-1">${disp}</mark>`: disp;
 }).replace(/\[\[([^\]]*?)\]\]/g, (m, inner) => {
@@ -295,13 +415,13 @@ if (!item) return;
 
 document.querySelectorAll(".vocab-token").forEach(el => el.classList.toggle("active", el.dataset.word === key));
 const st = progressMap[key] || "learning";
-const safeKey = key.replace(/'/g, "\\'");
-const say = (t) => `speakText('${String(t || "").replace(/'/g, "\\'")}')`;
+const safeKey = escapeHtml(key.replace(/\\/g, "\\\\").replace(/'/g, "\\'"));
+const say = (t) => `speakText(${escapeHtml(JSON.stringify(String(t || "")))})`;
 const ctxPara = findContextParagraph(item.word);
 
 document.getElementById("vocabCardContainer").innerHTML = `
 <div class="relative h-44 w-full bg-slate-950 overflow-hidden border-b border-slate-800">
-<img src="https://picsum.photos/seed/${encodeURIComponent(key)}/800/450" alt="${escapeHtml(item.word)}" class="w-full h-full object-cover opacity-80" loading="lazy" />
+<span class="scene-icon" aria-hidden="true">${escapeHtml(item.scene_emoji || "✦")}</span>
 <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
 <div class="absolute bottom-3 left-4 right-4 flex justify-between items-end">
 <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-black/60 text-indigo-300 border border-white/10">📸 场景：${escapeHtml(item.scene_emoji || "✨")}</span>
@@ -341,8 +461,8 @@ ${item.usage? `
 ${item.tv_show? `
 <div class="bg-gradient-to-r from-purple-950/40 to-slate-950 border border-purple-800/40 rounded-xl p-3.5 space-y-1.5">
 <div class="flex items-center justify-between">
-<span class="text-xs font-bold text-purple-300">🎬 美剧语境 · <span class="text-amber-300">${escapeHtml(item.tv_show)}</span></span>
-<button onclick="${say(item.tv_context_en)}" class="text-xs text-purple-300/80 hover:text-white">🔊 朗读台词</button>
+<span class="text-xs font-bold text-purple-300">🎬 剧风练习（原创，非原台词） · <span class="text-amber-300">${escapeHtml(item.tv_show)}</span></span>
+<button onclick="${say(item.tv_context_en)}" class="text-xs text-purple-300/80 hover:text-white">🔊 朗读练习句</button>
 </div>
 <p class="text-sm text-white font-serif italic">${escapeHtml(item.tv_context_en || "")}</p>
 <p tabindex="0" role="button" aria-label="点击显示中文翻译" onclick="toggleReveal(this)" onkeydown="revealKey(event, this)" class="text-xs text-slate-400 spoiler-blur pt-1 border-t border-purple-900/40" title="点击显隐中文解析">${escapeHtml(item.tv_context_zh || "")}</p>
@@ -369,7 +489,7 @@ ${item.tv_show? `
 </div>`;
 
 // 手机端：选中单词后平滑滚动到卡片
-if (window.innerWidth < 1024) {
+if (window.innerWidth < 1024 && document.activeElement !== document.body) {
 document.getElementById("vocabCardContainer").scrollIntoView({ behavior: "smooth", block: "nearest"});
 }
 }
@@ -382,8 +502,10 @@ if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggle
 }
 
 function updateStatus(wordKey, newStatus) {
-progressMap[wordKey] = (progressMap[wordKey] === newStatus)? "learning": newStatus;
-localStorage.setItem("lexi_progress_map", JSON.stringify(progressMap));
+const nextStatus=(progressMap[wordKey] === newStatus)? "learning": newStatus;
+try {localStorage.setItem("lexi_progress_map", JSON.stringify({...progressMap,[wordKey]:nextStatus}));}
+catch (_) {alert("无法保存进度，浏览器存储可能已满或被禁用。请先导出备份。");return;}
+progressMap[wordKey]=nextStatus;
 renderArticle(); renderPills(); selectWord(wordKey);
 
 const wordObj = (sessionData.vocab_list || []).find(v => v.word.toLowerCase() === wordKey);
@@ -418,8 +540,9 @@ function loadFromPastedJson() {
 try {
 let raw = document.getElementById("pastedJson").value.trim();
 raw = raw.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-sessionData = JSON.parse(raw);
-if (!sessionData.vocab_list ||!sessionData.article_markdown) throw new Error("缺少必要字段");
+const nextLesson = validateLesson(JSON.parse(raw));
+localStorage.setItem("lexi_last_session", JSON.stringify(nextLesson));
+sessionData = nextLesson;
 localStorage.setItem("lexi_last_session", JSON.stringify(sessionData));
 initApp(); toggleModal(false);
 } catch (e) {
@@ -556,8 +679,8 @@ throw new Error("API 返回 " + resp.status + "：" + errText.slice(0, 200));
 }
 const j = await resp.json();
 const text = (j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts || []).map(p => p.text || "").join("");
-const data = JSON.parse(text);
-if (!data.vocab_list ||!data.article_markdown) throw new Error("返回的 JSON 缺少 vocab_list 或 article_markdown 字段");
+const data = validateLesson(JSON.parse(text));
+localStorage.setItem("lexi_last_session", JSON.stringify(data));
 sessionData = data;
 localStorage.setItem("lexi_last_session", JSON.stringify(sessionData));
 initApp(); toggleModal(false);
@@ -569,6 +692,120 @@ alert("❌ 生成失败：" + e.message);
 } finally {
 btn.disabled = false;
 }
+}
+
+
+let studyMode="all";
+let noticeTimer;
+function notifyUser(message) {
+ let el=document.getElementById("appNotice");
+ if(!el){el=document.createElement("div");el.id="appNotice";el.setAttribute("role","status");document.body.appendChild(el);}
+ el.textContent=message;el.hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>el.hidden=true,4000);
+}
+function visibleWords() {
+ const q=(document.getElementById("wordSearch").value||"").trim().toLowerCase();
+ return sessionData.vocab_list.filter(v=>(studyMode!=="review" || progressMap[v.word.toLowerCase()]==="review") &&
+  (!q || (v.word+" "+(v.zh_def||"")).toLowerCase().includes(q)));
+}
+function setStudyMode(mode) {
+ studyMode=mode;renderPills();
+ const list=visibleWords();
+ if(list.length)selectWord(list[0].word);
+ else notifyUser(mode==="review"?"还没有标记待复习的单词，阅读时按 R 即可加入。":"没有匹配的单词");
+}
+function createTokenHtml(baseWord,surfaceWord) {
+ const key=baseWord.toLowerCase();
+ const st=progressMap[key]||"learning";
+ return '<button type="button" class="vocab-token '+(st==="mastered"?"status-mastered":st==="review"?"status-review":"")+
+  '" data-word="'+escapeHtml(key)+'" aria-label="查看单词 '+escapeHtml(baseWord)+'">'+escapeHtml(surfaceWord)+'</button>';
+}
+function renderPills() {
+ const all=sessionData.vocab_list||[];
+ const mastered=all.filter(v=>progressMap[v.word.toLowerCase()]==="mastered").length;
+ const review=all.filter(v=>progressMap[v.word.toLowerCase()]==="review").length;
+ document.getElementById("wordPills").innerHTML=visibleWords().map(v=>{
+  const key=v.word.toLowerCase(),st=progressMap[key]||"learning";
+  return '<button type="button" class="pill '+st+'" data-word="'+escapeHtml(key)+'" aria-pressed="'+(key===currentWordKey)+'">'+escapeHtml(v.word)+'</button>';
+ }).join("")||'<p class="empty-words">没有匹配的词汇。试试其他关键词，或切回全部词汇。</p>';
+ document.getElementById("progressSummary").textContent=mastered+"/"+all.length+" 已掌握";
+ const pct=all.length?Math.round(mastered/all.length*100):0;
+ document.getElementById("masteryPercent").textContent=pct+"%";
+ document.getElementById("masteryBar").style.width=pct+"%";
+ document.getElementById("studyCounts").textContent=all.length+" 个词 · "+review+" 个待复习";
+ document.getElementById("reviewCount").textContent=review;
+ document.getElementById("readMode").classList.toggle("selected",studyMode==="all");
+ document.getElementById("reviewMode").classList.toggle("selected",studyMode==="review");
+ document.getElementById("readMode").setAttribute("aria-pressed",studyMode==="all");
+ document.getElementById("reviewMode").setAttribute("aria-pressed",studyMode==="review");
+}
+const baseSelectWord=selectWord;
+selectWord=function(key) {
+ baseSelectWord(key);
+ const item=sessionData.vocab_list.find(v=>v.word.toLowerCase()===key.toLowerCase());
+ if(!item)return;
+ const container=document.getElementById("vocabCardContainer");
+ const scene=container.firstElementChild;
+ scene.className="scene-panel";
+ scene.replaceChildren();
+ const icon=document.createElement("span");icon.className="scene-icon";icon.textContent=item.scene_emoji||"✦";icon.setAttribute("aria-hidden","true");
+ const text=document.createElement("div"),label=document.createElement("small"),prompt=document.createElement("p");
+ label.textContent="IMAGINE THE SCENE";prompt.textContent=item.visual_scene_prompt||"在文章里找到这个词，想象它发生的场景。";
+ text.append(label,prompt);scene.append(icon,text);
+ const list=visibleWords(),index=list.findIndex(v=>v.word.toLowerCase()===key.toLowerCase());
+ const nav=document.createElement("div");nav.className="word-navigation";
+ const prev=document.createElement("button"),next=document.createElement("button"),count=document.createElement("span");
+ prev.textContent="← 上一个";next.textContent="下一个 →";
+ prev.disabled=list.length<2;next.disabled=list.length<2;
+ prev.onclick=()=>navigateWord(-1);next.onclick=()=>navigateWord(1);
+ count.textContent=index<0?"当前词不在筛选结果中":(index+1)+" / "+list.length;
+ nav.append(prev,count,next);container.appendChild(nav);
+ document.querySelectorAll("#wordPills [data-word]").forEach(el=>el.setAttribute("aria-pressed",el.dataset.word===currentWordKey));
+};
+function navigateWord(step) {
+ const list=visibleWords();if(!list.length)return;
+ const index=list.findIndex(v=>v.word.toLowerCase()===currentWordKey);
+ selectWord(list[(index+step+list.length)%list.length].word);
+}
+document.addEventListener("click",e=>{
+ const token=e.target.closest("[data-word]");if(token)selectWord(token.dataset.word);
+});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"){toggleModal(false);return;}
+ if(e.target.closest("input,textarea,select,[contenteditable=true]") || !document.getElementById("visionModal").classList.contains("hidden") || e.ctrlKey || e.metaKey || e.altKey)return;
+ if(e.key==="ArrowLeft" || e.key==="ArrowRight"){e.preventDefault();navigateWord(e.key==="ArrowRight"?1:-1);}
+ if(e.code==="Space" && !e.target.closest("button,a,[role=button]")){e.preventDefault();document.querySelectorAll("#vocabCardContainer .spoiler-blur").forEach(toggleReveal);}
+ if(e.key.toLowerCase()==="r" && currentWordKey){e.preventDefault();updateStatus(currentWordKey,"review");}
+ if(e.key.toLowerCase()==="m" && currentWordKey){e.preventDefault();updateStatus(currentWordKey,"mastered");}
+});
+function downloadBackup() {
+ const data={format:"lexicontext-backup",version:1,exportedAt:new Date().toISOString(),sessionData,progressMap};
+ const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));
+ const a=document.createElement("a");a.href=url;a.download="lexicontext-backup-"+new Date().toISOString().slice(0,10)+".json";
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ notifyUser("备份已导出，包含当前课程和全部词汇进度。");
+}
+async function restoreBackup(input) {
+ const file=input.files[0];if(!file)return;
+ try {
+  if(file.size>5*1024*1024)throw new Error("请选择小于 5 MB 的备份文件");
+  const data=JSON.parse(await file.text());
+  if(data.format!=="lexicontext-backup" || data.version!==1)throw new Error("不是受支持的 LexiContext 备份");
+  const nextLesson=validateLesson(data.sessionData);
+  if(!data.progressMap || typeof data.progressMap!=="object" || Array.isArray(data.progressMap))throw new Error("备份进度格式错误");
+  const nextProgress=Object.create(null);
+  Object.entries(data.progressMap).forEach(([k,v])=>{if(!["learning","review","mastered"].includes(v))throw new Error("无效的词汇进度");nextProgress[k]=v;});
+  if(!confirm("将用此备份替换当前课程和全部词汇进度。请先导出当前备份。继续恢复吗？"))return;
+  const oldLesson=localStorage.getItem("lexi_last_session"),oldProgress=localStorage.getItem("lexi_progress_map");
+  try {localStorage.setItem("lexi_last_session",JSON.stringify(nextLesson));localStorage.setItem("lexi_progress_map",JSON.stringify(nextProgress));}
+  catch(error) {
+   if(oldLesson===null)localStorage.removeItem("lexi_last_session");else localStorage.setItem("lexi_last_session",oldLesson);
+   if(oldProgress===null)localStorage.removeItem("lexi_progress_map");else localStorage.setItem("lexi_progress_map",oldProgress);
+   throw error;
+  }
+  sessionData=nextLesson;progressMap=nextProgress;studyMode="all";document.getElementById("wordSearch").value="";initApp();
+  notifyUser("课程和进度已恢复。");
+ }catch(error){alert("恢复失败："+error.message);}
+ finally{input.value="";}
 }
 
 initApp();
